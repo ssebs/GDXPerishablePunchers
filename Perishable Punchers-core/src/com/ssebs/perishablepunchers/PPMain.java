@@ -21,9 +21,8 @@ import com.badlogic.gdx.math.Vector3;
  * @author ssebs
  */
 
-// TODO: add walking animations, redesign art, health of both characters, diff
-// characters/maps, and a config file for having the sound on or off
-// also ad fireball button in center. maybe shield
+// TODO: add change character option, redesign art, health of both characters,
+// diff maps, shield 
 
 public class PPMain extends ApplicationAdapter
 {
@@ -44,11 +43,11 @@ public class PPMain extends ApplicationAdapter
 	private static final int FRAME_COLS = 2;
 	private static final int FRAME_ROWS = 2;
 
-	Animation walkAnimation, walkAnimation2, p1WalkAnimationR, p1WalkAnimationL;
-	Texture walkSheet, walkSheet2, p1WalkRSheet, p1WalkLSheet;
-	TextureRegion[] walkFrames, walkFrames2, p1WalkRFrames, p1WalkLFrames;
-	TextureRegion currentFrame, currentFrame2, p1WalkRFrame, p1WalkLFrame;
-	float stateTime, stateTime2, stateTime3, stateTime4;
+	Animation walkAnimation, walkAnimation2, p1WalkAnimationR, p1WalkAnimationL, p2WalkAnimationR, p2WalkAnimationL, p3WalkAnimationR, p3WalkAnimationL, p4WalkAnimationR, p4WalkAnimationL;
+	Texture walkSheet, walkSheet2, p1WalkRSheet, p1WalkLSheet, p2WalkRSheet, p2WalkLSheet, p3WalkRSheet, p3WalkLSheet, p4WalkRSheet, p4WalkLSheet;
+	TextureRegion[] walkFrames, walkFrames2, p1WalkRFrames, p1WalkLFrames, p2WalkRFrames, p2WalkLFrames, p3WalkRFrames, p3WalkLFrames, p4WalkRFrames, p4WalkLFrames;
+	TextureRegion currentFrame, currentFrame2, p1WalkRFrame, p1WalkLFrame, p2WalkRFrame, p2WalkLFrame, p3WalkRFrame, p3WalkLFrame, p4WalkRFrame, p4WalkLFrame;
+	float stateTime, stateTime2, stateTimeP1L, stateTimeP1R, stateTimeP2L, stateTimeP2R, stateTimeP3L, stateTimeP3R, stateTimeP4L, stateTimeP4R;
 
 	boolean isMovingLeft = false;
 	boolean isMovingRight = false;
@@ -90,11 +89,12 @@ public class PPMain extends ApplicationAdapter
 	public void create()
 	{
 
-		jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/Jump.wav"));
-		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Punch.wav"));
-		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("data/Haduken.wav"));
+		jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Jump.wav"));
+		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Punch.wav"));
+		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Haduken.wav"));
+		// ^sounds
 		{
-			walkSheet = new Texture(Gdx.files.internal("data/DargonAnimRight.png"));
+			walkSheet = new Texture(Gdx.files.internal("data/Dargon/AnimR.png"));
 			TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
 			walkFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
 			int index = 0;
@@ -110,7 +110,7 @@ public class PPMain extends ApplicationAdapter
 			// dragon right
 		}
 		{
-			walkSheet2 = new Texture(Gdx.files.internal("data/DargonAnimLeft.png"));
+			walkSheet2 = new Texture(Gdx.files.internal("data/Dargon/AnimL.png"));
 			TextureRegion[][] tmp2 = TextureRegion.split(walkSheet2, walkSheet2.getWidth() / FRAME_COLS, walkSheet2.getHeight() / FRAME_ROWS);
 			walkFrames2 = new TextureRegion[FRAME_COLS * FRAME_ROWS];
 			int index2 = 0;
@@ -126,9 +126,9 @@ public class PPMain extends ApplicationAdapter
 			// dragon left
 
 		}
-
+		// Player 1 \/
 		{
-			p1WalkLSheet = new Texture(Gdx.files.internal("data/Player1WalkAnimL.png")); // #9
+			p1WalkLSheet = new Texture(Gdx.files.internal("data/Player1/AnimL.png")); // #9
 			TextureRegion[][] tmp = TextureRegion.split(p1WalkLSheet, p1WalkLSheet.getWidth() / FRAME_COLS, p1WalkLSheet.getHeight() / FRAME_ROWS); // #10
 			p1WalkLFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
 			int index = 0;
@@ -140,11 +140,11 @@ public class PPMain extends ApplicationAdapter
 				}
 			}
 			p1WalkAnimationL = new Animation(0.15f, p1WalkLFrames); // #11
-			stateTime3 = 0f;
+			stateTimeP1L = 0f;
 			// player1Left
 		}
 		{
-			p1WalkRSheet = new Texture(Gdx.files.internal("data/Player1WalkAnimR.png")); // #9
+			p1WalkRSheet = new Texture(Gdx.files.internal("data/Player1/AnimR.png")); // #9
 			TextureRegion[][] tmp = TextureRegion.split(p1WalkRSheet, p1WalkRSheet.getWidth() / FRAME_COLS, p1WalkRSheet.getHeight() / FRAME_ROWS); // #10
 			p1WalkRFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
 			int index = 0;
@@ -156,8 +156,107 @@ public class PPMain extends ApplicationAdapter
 				}
 			}
 			p1WalkAnimationR = new Animation(0.15f, p1WalkRFrames); // #11
-			stateTime4 = 0f;
+			stateTimeP1R = 0f;
 			// player1Right
+		}
+		// Player 2 \/
+		{
+			p2WalkLSheet = new Texture(Gdx.files.internal("data/Player2/AnimL.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p2WalkLSheet, p2WalkLSheet.getWidth() / FRAME_COLS, p2WalkLSheet.getHeight() / FRAME_ROWS); // #10
+			p2WalkLFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p2WalkLFrames[index++] = tmp[i][j];
+				}
+			}
+			p2WalkAnimationL = new Animation(0.15f, p2WalkLFrames); // #11
+			stateTimeP2L = 0f;
+			// player2Left
+		}
+		{
+			p2WalkRSheet = new Texture(Gdx.files.internal("data/Player2/AnimR.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p2WalkRSheet, p2WalkRSheet.getWidth() / FRAME_COLS, p2WalkRSheet.getHeight() / FRAME_ROWS); // #20
+			p2WalkRFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p2WalkRFrames[index++] = tmp[i][j];
+				}
+			}
+			p2WalkAnimationR = new Animation(0.15f, p2WalkRFrames); // #22
+			stateTimeP2R = 0f;
+			// player2Right
+		}
+		// Player 3 \/
+		{
+			p3WalkLSheet = new Texture(Gdx.files.internal("data/Player3/AnimL.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p3WalkLSheet, p3WalkLSheet.getWidth() / FRAME_COLS, p3WalkLSheet.getHeight() / FRAME_ROWS); // #10
+			p3WalkLFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p3WalkLFrames[index++] = tmp[i][j];
+				}
+			}
+			p3WalkAnimationL = new Animation(0.15f, p3WalkLFrames); // #11
+			stateTimeP3L = 0f;
+			// player3Left
+		}
+		{
+			p3WalkRSheet = new Texture(Gdx.files.internal("data/Player3/AnimR.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p3WalkRSheet, p3WalkRSheet.getWidth() / FRAME_COLS, p3WalkRSheet.getHeight() / FRAME_ROWS); // #30
+			p3WalkRFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p3WalkRFrames[index++] = tmp[i][j];
+				}
+			}
+			p3WalkAnimationR = new Animation(0.15f, p3WalkRFrames); // #33
+			stateTimeP3R = 0f;
+			// player3Right
+		}
+		// Player 4 \/
+		{
+			p4WalkLSheet = new Texture(Gdx.files.internal("data/Player4/AnimL.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p4WalkLSheet, p4WalkLSheet.getWidth() / FRAME_COLS, p4WalkLSheet.getHeight() / FRAME_ROWS); // #10
+			p4WalkLFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p4WalkLFrames[index++] = tmp[i][j];
+				}
+			}
+			p4WalkAnimationL = new Animation(0.15f, p4WalkLFrames); // #11
+			stateTimeP4L = 0f;
+			// player4Left
+		}
+		{
+			p4WalkRSheet = new Texture(Gdx.files.internal("data/Player4/AnimR.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p4WalkRSheet, p4WalkRSheet.getWidth() / FRAME_COLS, p4WalkRSheet.getHeight() / FRAME_ROWS); // #40
+			p4WalkRFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p4WalkRFrames[index++] = tmp[i][j];
+				}
+			}
+			p4WalkAnimationR = new Animation(0.15f, p4WalkRFrames); // #44
+			stateTimeP4R = 0f;
+			// player4Right
 		}
 
 		/*
@@ -173,22 +272,22 @@ public class PPMain extends ApplicationAdapter
  * 
  * 
  * */
-		background = new Texture(Gdx.files.internal("data/BGHD.png"));
-		menu = new Texture(Gdx.files.internal("data/Menu.png"));
-		controls = new Texture(Gdx.files.internal("data/Controls.png"));
-		charSelect = new Texture(Gdx.files.internal("data/CharacterSelection.png"));
+		background = new Texture(Gdx.files.internal("data/Screens/Background.png"));
+		menu = new Texture(Gdx.files.internal("data/Screens/Menu.png"));
+		controls = new Texture(Gdx.files.internal("data/Screens/Controls.png"));
+		charSelect = new Texture(Gdx.files.internal("data/Screens/CharacterSelection.png"));
 
-		backButton = new Texture(Gdx.files.internal("data/Back.png"));
-		attackButton = new Texture(Gdx.files.internal("data/Attack.png"));
-		jumpButton = new Texture(Gdx.files.internal("data/Jump.png"));
-		leftButton = new Texture(Gdx.files.internal("data/Left.png"));
-		rightButton = new Texture(Gdx.files.internal("data/Right.png"));
-		fireBallButton = new Texture(Gdx.files.internal("data/FireBallButton.png"));
-		mute = new Texture(Gdx.files.internal("data/Mute.png"));
-		sound = new Texture(Gdx.files.internal("data/Sound.png"));
+		backButton = new Texture(Gdx.files.internal("data/Buttons/Back.png"));
+		attackButton = new Texture(Gdx.files.internal("data/Buttons/Attack.png"));
+		jumpButton = new Texture(Gdx.files.internal("data/Buttons/Jump.png"));
+		leftButton = new Texture(Gdx.files.internal("data/Buttons/Left.png"));
+		rightButton = new Texture(Gdx.files.internal("data/Buttons/Right.png"));
+		fireBallButton = new Texture(Gdx.files.internal("data/Buttons/FireBallButton.png"));
+		mute = new Texture(Gdx.files.internal("data/Buttons/Mute.png"));
+		sound = new Texture(Gdx.files.internal("data/Buttons/Sound.png"));
 
-		enemy = new Texture(Gdx.files.internal("data/DargonWalkHD.png"));
-		enemyAttack = new Texture(Gdx.files.internal("data/DargonKunchHD.png"));
+		enemy = new Texture(Gdx.files.internal("data/Dargon/Stand.png"));
+		enemyAttack = new Texture(Gdx.files.internal("data/Dargon/Kunch.png"));
 		explosion = new Texture(Gdx.files.internal("data/ExplosionHD75Opacity.png"));
 
 		player = new Rectangle(x, y, 256, 256);
@@ -436,14 +535,28 @@ public class PPMain extends ApplicationAdapter
 
 	private void renderGame()
 	{
-		stateTime += Gdx.graphics.getDeltaTime(); // #15
-		stateTime2 += Gdx.graphics.getDeltaTime(); // #15
-		stateTime3 += Gdx.graphics.getDeltaTime(); // #15
-		stateTime4 += Gdx.graphics.getDeltaTime(); // #15
+		stateTime += Gdx.graphics.getDeltaTime();
+		stateTime2 += Gdx.graphics.getDeltaTime();
+		stateTimeP1L += Gdx.graphics.getDeltaTime();
+		stateTimeP1R += Gdx.graphics.getDeltaTime();
+		stateTimeP2L += Gdx.graphics.getDeltaTime();
+		stateTimeP2R += Gdx.graphics.getDeltaTime();
+		stateTimeP3L += Gdx.graphics.getDeltaTime();
+		stateTimeP3R += Gdx.graphics.getDeltaTime();
+		stateTimeP4L += Gdx.graphics.getDeltaTime();
+		stateTimeP4R += Gdx.graphics.getDeltaTime();
+		// ^ Statetimes
 		currentFrame = walkAnimation.getKeyFrame(stateTime, true);
 		currentFrame2 = walkAnimation2.getKeyFrame(stateTime2, true);
-		p1WalkLFrame = p1WalkAnimationL.getKeyFrame(stateTime3, true);
-		p1WalkRFrame = p1WalkAnimationR.getKeyFrame(stateTime4, true);
+		p1WalkLFrame = p1WalkAnimationL.getKeyFrame(stateTimeP1L, true);
+		p1WalkRFrame = p1WalkAnimationR.getKeyFrame(stateTimeP1R, true);
+		p2WalkLFrame = p2WalkAnimationL.getKeyFrame(stateTimeP2L, true);
+		p2WalkRFrame = p2WalkAnimationR.getKeyFrame(stateTimeP2R, true);
+		p3WalkLFrame = p3WalkAnimationL.getKeyFrame(stateTimeP3L, true);
+		p3WalkRFrame = p3WalkAnimationR.getKeyFrame(stateTimeP3R, true);
+		p4WalkLFrame = p4WalkAnimationL.getKeyFrame(stateTimeP4L, true);
+		p4WalkRFrame = p4WalkAnimationR.getKeyFrame(stateTimeP4R, true);
+		// ^set frames
 
 		// from here
 		Vector3 touchPos;
@@ -535,10 +648,34 @@ public class PPMain extends ApplicationAdapter
 			// batch.draw(fighter, x, y);
 			if (isPlayerMovingRight)
 			{
-				batch.draw(p1WalkRFrame, x, y);
+				if (characterColor == CharacterColor.PINK)
+				{
+					batch.draw(p1WalkRFrame, x, y);
+				} else if (characterColor == CharacterColor.GREEN)
+				{
+					batch.draw(p2WalkRFrame, x, y);
+				} else if (characterColor == CharacterColor.RED)
+				{
+					batch.draw(p3WalkRFrame, x, y);
+				} else if (characterColor == CharacterColor.BLUE)
+				{
+					batch.draw(p4WalkRFrame, x, y);
+				}
 			} else if (isPlayerMovingLeft)
 			{
-				batch.draw(p1WalkLFrame, x, y);
+				if (characterColor == CharacterColor.PINK)
+				{
+					batch.draw(p1WalkLFrame, x, y);
+				} else if (characterColor == CharacterColor.GREEN)
+				{
+					batch.draw(p2WalkLFrame, x, y);
+				} else if (characterColor == CharacterColor.RED)
+				{
+					batch.draw(p3WalkLFrame, x, y);
+				} else if (characterColor == CharacterColor.BLUE)
+				{
+					batch.draw(p4WalkLFrame, x, y);
+				}
 			} else
 			{
 				batch.draw(fighter, x, y);
@@ -902,20 +1039,20 @@ public class PPMain extends ApplicationAdapter
 	{
 		if (color == CharacterColor.PINK)
 		{
-			fighter = new Texture(Gdx.files.internal("data/Player1WalkHD.png"));
-			fighterKunch = new Texture(Gdx.files.internal("data/Player1KunchHD.png"));
+			fighter = new Texture(Gdx.files.internal("data/Player1/Stand.png"));
+			fighterKunch = new Texture(Gdx.files.internal("data/Player1/Kunch.png"));
 		} else if (color == CharacterColor.RED)
 		{
-			fighter = new Texture(Gdx.files.internal("data/Player3WalkHD.png"));
-			fighterKunch = new Texture(Gdx.files.internal("res/HD/Player3/Player3KunchHD.png"));
+			fighter = new Texture(Gdx.files.internal("data/Player3/Stand.png"));
+			fighterKunch = new Texture(Gdx.files.internal("data/Player3/Kunch.png"));
 		} else if (color == CharacterColor.GREEN)
 		{
-			fighter = new Texture(Gdx.files.internal("data/Player2WalkHD.png"));
-			fighterKunch = new Texture(Gdx.files.internal("data/Player2KunchHD.png"));
+			fighter = new Texture(Gdx.files.internal("data/Player2/Stand.png"));
+			fighterKunch = new Texture(Gdx.files.internal("data/Player2/Kunch.png"));
 		} else if (color == CharacterColor.BLUE)
 		{
-			fighter = new Texture(Gdx.files.internal("data/Player4WalkHD.png"));
-			fighterKunch = new Texture(Gdx.files.internal("data/Player4KunchHD.png"));
+			fighter = new Texture(Gdx.files.internal("data/Player4/Stand.png"));
+			fighterKunch = new Texture(Gdx.files.internal("data/Player4/Kunch.png"));
 		}
 	}
 

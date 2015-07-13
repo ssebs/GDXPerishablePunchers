@@ -14,8 +14,8 @@ public class DesktopLauncher
 		config.title = "Perishable Punchers";
 		config.width = 1280;
 		config.height = 720;
-		config.addIcon("data/logo32.png", Files.FileType.Internal);
-		config.addIcon("data/Logo16.png", FileType.Internal);
+		config.addIcon("data/Logos/logo32.png", Files.FileType.Internal);
+		config.addIcon("data/Logos/Logo16.png", FileType.Internal);
 		//config.fullscreen = true;
 		new LwjglApplication(new PPMain(), config);
 	}
