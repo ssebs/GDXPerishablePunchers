@@ -787,20 +787,21 @@ public class PPMain extends ApplicationAdapter
 
 	private void shootFireBall()
 	{
-		if (isSoundOn)
-		{
-			// System.out.println("fireball method called");
-			thread2 = new Thread(new Runnable()
-			{
 
-				@Override
-				public void run()
+		// System.out.println("fireball method called");
+		thread2 = new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				if (isSoundOn)
 				{
 					fireBallSound.play();
 				}
-			});
+			}
+		});
 
-		}
 		Thread thread = new Thread(new Runnable()
 		{
 
