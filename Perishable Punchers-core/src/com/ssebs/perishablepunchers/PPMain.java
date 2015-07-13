@@ -31,6 +31,15 @@ public class PPMain extends ApplicationAdapter
 	final int HEIGHT = 720;
 
 	Preferences preferences;
+	private static final int FRAME_COLS = 2;
+	private static final int FRAME_ROWS = 2;
+
+	Animation walkAnimation, walkAnimation2, p1WalkAnimationR, p1WalkAnimationL;
+	Texture walkSheet, walkSheet2, p1WalkRSheet, p1WalkLSheet;
+	TextureRegion[] walkFrames, walkFrames2, p1WalkRFrames, p1WalkLFrames;
+	TextureRegion currentFrame, currentFrame2, p1WalkRFrame, p1WalkLFrame;
+
+	float stateTime, stateTime2, stateTime3, stateTime4;
 
 	SpriteBatch batch;
 	Texture background, menu, controls, backButton, attackButton, jumpButton, leftButton, rightButton, charSelect;
@@ -40,16 +49,6 @@ public class PPMain extends ApplicationAdapter
 
 	int x = 256 + 64, y = 64, ex = WIDTH - (256 + 64), wy = 64, fighterHealth = 100, enemyHealth = 100;
 	int fbX, fbY;// fireball coords
-
-	private static final int FRAME_COLS = 2;
-	private static final int FRAME_ROWS = 2;
-
-	Animation walkAnimation, walkAnimation2;
-	Texture walkSheet, walkSheet2;
-	TextureRegion[] walkFrames, walkFrames2;
-	TextureRegion currentFrame, currentFrame2;
-
-	float stateTime, stateTime2;
 
 	boolean isMovingLeft = false;
 	boolean isMovingRight = false;
@@ -63,6 +62,8 @@ public class PPMain extends ApplicationAdapter
 	boolean enemyAttacking = false;
 	boolean debugging = false;
 	boolean renderFireBall = false;
+	boolean isPlayerMovingRight = false;
+	boolean isPlayerMovingLeft = false;
 
 	// boolean isSoundOn = true;// THIS SHOULD BE A SETTING
 	boolean isSoundOn;
@@ -85,61 +86,115 @@ public class PPMain extends ApplicationAdapter
 		PINK, RED, GREEN, BLUE;
 	}
 
+	private void loadAnimStuff()
+	{
+		
+
+	}
+
 	@Override
 	public void create()
 	{
 
-		jumpSound = Gdx.audio.newSound(Gdx.files.internal("res/Sounds/Jump.wav"));
-		hitSound = Gdx.audio.newSound(Gdx.files.internal("res/Sounds/Punch.wav"));
-		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("res/Sounds/Haduken.wav"));
-
-		walkSheet = new Texture(Gdx.files.internal("res/DargonAnimRight/DargonAnimRight.png"));
-		TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
-		walkFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
-		int index = 0;
-		for (int i = 0; i < FRAME_ROWS; i++)
+		jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/Jump.wav"));
+		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Punch.wav"));
+		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("data/Haduken.wav"));
 		{
-			for (int j = 0; j < FRAME_COLS; j++)
+			walkSheet = new Texture(Gdx.files.internal("data/DargonAnimleft.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS); // #10
+			walkFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
 			{
-				walkFrames[index++] = tmp[i][j];
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					walkFrames[index++] = tmp[i][j];
+				}
 			}
+			walkAnimation = new Animation(0.15f, walkFrames); // #11
+			stateTime = 0f;
+			// dargon left
 		}
-		walkAnimation = new Animation(0.25f, walkFrames);
-		stateTime = 0f;
-		// right
 
-		walkSheet2 = new Texture(Gdx.files.internal("res/DargonAnimLeft/DargonAnimLeft.png"));
-		TextureRegion[][] tmp2 = TextureRegion.split(walkSheet2, walkSheet2.getWidth() / FRAME_COLS, walkSheet2.getHeight() / FRAME_ROWS);
-		walkFrames2 = new TextureRegion[FRAME_COLS * FRAME_ROWS];
-		int index2 = 0;
-		for (int i = 0; i < FRAME_ROWS; i++)
 		{
-			for (int j = 0; j < FRAME_COLS; j++)
+			walkSheet2 = new Texture(Gdx.files.internal("data/DargonAnimRight.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(walkSheet2, walkSheet2.getWidth() / FRAME_COLS, walkSheet2.getHeight() / FRAME_ROWS); // #10
+			walkFrames2 = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
 			{
-				walkFrames2[index2++] = tmp2[i][j];
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					walkFrames2[index++] = tmp[i][j];
+				}
 			}
+			walkAnimation2 = new Animation(0.15f, walkFrames2); // #11
+			stateTime2 = 0f;
+			// dargon right
 		}
-		walkAnimation2 = new Animation(0.25f, walkFrames2);
-		stateTime2 = 0f;
-		// left
 
-		background = new Texture(Gdx.files.internal("res/Other/BG.png"));
-		menu = new Texture(Gdx.files.internal("res/Other/Menu.png"));
-		controls = new Texture(Gdx.files.internal("res/Other/Controls.png"));
-		charSelect = new Texture(Gdx.files.internal("res/Other/CharacterSelection.png"));
+		{
+			p1WalkLSheet = new Texture(Gdx.files.internal("data/Player1WalkAnimL.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p1WalkLSheet, p1WalkLSheet.getWidth() / FRAME_COLS, p1WalkLSheet.getHeight() / FRAME_ROWS); // #10
+			p1WalkLFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p1WalkLFrames[index++] = tmp[i][j];
+				}
+			}
+			p1WalkAnimationL = new Animation(0.15f, p1WalkLFrames); // #11
+			stateTime3 = 0f;
+			// player1Left
+		}
+		{
+			p1WalkRSheet = new Texture(Gdx.files.internal("data/Player1WalkAnimR.png")); // #9
+			TextureRegion[][] tmp = TextureRegion.split(p1WalkRSheet, p1WalkRSheet.getWidth() / FRAME_COLS, p1WalkRSheet.getHeight() / FRAME_ROWS); // #10
+			p1WalkRFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			int index = 0;
+			for (int i = 0; i < FRAME_ROWS; i++)
+			{
+				for (int j = 0; j < FRAME_COLS; j++)
+				{
+					p1WalkRFrames[index++] = tmp[i][j];
+				}
+			}
+			p1WalkAnimationR = new Animation(0.15f, p1WalkRFrames); // #11
+			stateTime4 = 0f;
+			// player1Right
+		}
+		loadAnimStuff();
+		/*
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * */
+		// begin normal rendering
+		background = new Texture(Gdx.files.internal("data/BGHD.png"));
+		menu = new Texture(Gdx.files.internal("data/Menu.png"));
+		controls = new Texture(Gdx.files.internal("data/Controls.png"));
+		charSelect = new Texture(Gdx.files.internal("data/CharacterSelection.png"));
 
-		backButton = new Texture(Gdx.files.internal("res/Other/Back.png"));
-		attackButton = new Texture(Gdx.files.internal("res/Other/Attack.png"));
-		jumpButton = new Texture(Gdx.files.internal("res/Other/Jump.png"));
-		leftButton = new Texture(Gdx.files.internal("res/Other/Left.png"));
-		rightButton = new Texture(Gdx.files.internal("res/Other/Right.png"));
-		fireBallButton = new Texture(Gdx.files.internal("res/Other/FireBallButton.png"));
-		mute = new Texture(Gdx.files.internal("res/Other/Mute.png"));
-		sound = new Texture(Gdx.files.internal("res/Other/Sound.png"));
+		backButton = new Texture(Gdx.files.internal("data/Back.png"));
+		attackButton = new Texture(Gdx.files.internal("data/Attack.png"));
+		jumpButton = new Texture(Gdx.files.internal("data/Jump.png"));
+		leftButton = new Texture(Gdx.files.internal("data/Left.png"));
+		rightButton = new Texture(Gdx.files.internal("data/Right.png"));
+		fireBallButton = new Texture(Gdx.files.internal("data/FireBallButton.png"));
+		mute = new Texture(Gdx.files.internal("data/Mute.png"));
+		sound = new Texture(Gdx.files.internal("data/Sound.png"));
 
-		enemy = new Texture(Gdx.files.internal("res/Dargon/DargonWalkHD.png"));
-		enemyAttack = new Texture(Gdx.files.internal("res/Dargon/DargonKunchHD.png"));
-		explosion = new Texture(Gdx.files.internal("res/Other/ExplosionHD75Opacity.png"));
+		enemy = new Texture(Gdx.files.internal("data/DargonWalkHD.png"));
+		enemyAttack = new Texture(Gdx.files.internal("data/DargonKunchHD.png"));
+		explosion = new Texture(Gdx.files.internal("data/ExplosionHD75Opacity.png"));
 
 		player = new Rectangle(x, y, 256, 256);
 		npc = new Rectangle(ex, wy, 256, 256);
@@ -388,8 +443,13 @@ public class PPMain extends ApplicationAdapter
 	{
 		stateTime += Gdx.graphics.getDeltaTime(); // #15
 		stateTime2 += Gdx.graphics.getDeltaTime(); // #15
-		currentFrame = walkAnimation.getKeyFrame(stateTime, true); // #16
-		currentFrame2 = walkAnimation2.getKeyFrame(stateTime2, true); // #16
+		stateTime3 += Gdx.graphics.getDeltaTime(); // #15
+		stateTime4 += Gdx.graphics.getDeltaTime(); // #15
+
+		currentFrame = walkAnimation.getKeyFrame(stateTime, true);
+		currentFrame2 = walkAnimation2.getKeyFrame(stateTime2, true);
+		p1WalkLFrame = p1WalkAnimationL.getKeyFrame(stateTime3, true);
+		p1WalkRFrame = p1WalkAnimationR.getKeyFrame(stateTime4, true);
 
 		// from here
 		Vector3 touchPos;
@@ -413,9 +473,16 @@ public class PPMain extends ApplicationAdapter
 		if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A))
 		{
 			x -= 800 * Gdx.graphics.getDeltaTime();
+			isPlayerMovingLeft = true;
+			isPlayerMovingRight = false;
 		} else if (Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D))
 		{
 			x += 800 * Gdx.graphics.getDeltaTime();
+			isPlayerMovingLeft = false;
+			isPlayerMovingRight = true;
+		}else {
+			isPlayerMovingLeft = false;
+			isPlayerMovingRight = false;
 		}
 		if (Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN))
 		{
@@ -446,6 +513,8 @@ public class PPMain extends ApplicationAdapter
 					if (x > 16)
 					{
 						x -= 800 * Gdx.graphics.getDeltaTime();
+						isPlayerMovingLeft = true;
+						isPlayerMovingRight = false;
 					}
 				}
 			} else if (touchPos.x > 765 && touchPos.x < 1015)
@@ -455,6 +524,8 @@ public class PPMain extends ApplicationAdapter
 					if (x < WIDTH - (256 + 16))
 					{
 						x += 800 * Gdx.graphics.getDeltaTime();
+						isPlayerMovingLeft = false;
+						isPlayerMovingRight = true;
 					}
 				}
 			}
@@ -466,7 +537,16 @@ public class PPMain extends ApplicationAdapter
 		batch.draw(background, 0, 0);
 		if (!kunch)
 		{
-			batch.draw(fighter, x, y);
+			if (isPlayerMovingRight)
+			{
+				batch.draw(p1WalkRFrame, x, y);
+			} else if (isPlayerMovingLeft)
+			{
+				batch.draw(p1WalkLFrame, x, y);
+			} else
+			{
+				batch.draw(fighter, x, y);
+			}
 		} else
 		{
 			batch.draw(fighterKunch, x, y);
@@ -706,13 +786,26 @@ public class PPMain extends ApplicationAdapter
 		thread.start();
 	}
 
+	Thread thread2;
+
 	private void shootFireBall()
 	{
-		if (isSoundOn)
+
+		thread2 = new Thread(new Runnable()
 		{
-			// System.out.println("fireball method called");
-			fireBallSound.play();
-		}
+
+			@Override
+			public void run()
+			{
+
+				if (isSoundOn)
+				{
+					fireBallSound.play();
+				}
+
+			}
+		});
+
 		Thread thread = new Thread(new Runnable()
 		{
 
@@ -721,14 +814,26 @@ public class PPMain extends ApplicationAdapter
 			{
 				renderFireBall = true;
 				fbX = x;
+				if (fbX < ex - 64)
+				{
+					thread2.start();
+				} else if (fbX > ex + 64)
+				{
+					thread2.start();
+				} else
+				// touching
+				{
+				}
 				do
 				{
 					if (fbX < ex - 64)
 					{
 						fbX += 1400 * Gdx.graphics.getDeltaTime();
+
 					} else if (fbX > ex + 64)
 					{
 						fbX -= 1400 * Gdx.graphics.getDeltaTime();
+
 					} else
 					// touching
 					{
@@ -746,6 +851,7 @@ public class PPMain extends ApplicationAdapter
 			}
 		});
 		thread.start();
+
 	}
 
 	private void dargonAI()
