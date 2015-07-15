@@ -1,5 +1,6 @@
 package com.ssebs.perishablepunchers;
 
+import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -70,7 +71,7 @@ public class PPMain extends ApplicationAdapter
 	GestureDetector gestureDetector;
 	MyGestureListener myGestureListener;
 
-	Sound jumpSound, hitSound, fireBallSound;
+	Sound jumpSound, hitSound, fireBallSound, whooshSound;
 
 	GameState gameState = GameState.MENU;
 	CharacterColor characterColor = CharacterColor.PINK;
@@ -92,6 +93,7 @@ public class PPMain extends ApplicationAdapter
 		jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Jump.wav"));
 		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Punch.wav"));
 		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Haduken.wav"));
+		whooshSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Whoosh.wav"));
 		// ^sounds
 		{
 			walkSheet = new Texture(Gdx.files.internal("data/Dargon/AnimR.png"));
@@ -630,6 +632,15 @@ public class PPMain extends ApplicationAdapter
 			System.out.println("Y" + (int) touchPos.y);
 			// to here is so the display coords work
 		}
+		if (Gdx.input.isKeyJustPressed(Keys.ENTER))
+		{
+			characterColor = CharacterColor.PINK;
+			mapID = 1;
+			loadCharTexture(characterColor);
+			loadMapTexture(mapID);
+			gameState = GameState.PLAY;
+		}
+
 		if (Gdx.input.isButtonPressed(0))
 		{
 			if (touchPos.x > 400 && touchPos.x < 875)
@@ -749,28 +760,34 @@ public class PPMain extends ApplicationAdapter
 
 		if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A))
 		{
-			x -= 800 * Gdx.graphics.getDeltaTime();
-			isPlayerMovingLeft = true;
-			isPlayerMovingRight = false;
+			if (x > 16)
+			{
+				x -= 800 * Gdx.graphics.getDeltaTime();
+				isPlayerMovingLeft = true;
+				isPlayerMovingRight = false;
+			}
 		} else if (Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D))
 		{
-			x += 800 * Gdx.graphics.getDeltaTime();
-			isPlayerMovingLeft = false;
-			isPlayerMovingRight = true;
+			if (x < WIDTH - (256 + 16))
+			{
+				x += 800 * Gdx.graphics.getDeltaTime();
+				isPlayerMovingLeft = false;
+				isPlayerMovingRight = true;
+			}
 		} else
 		{
 			isPlayerMovingLeft = false;
 			isPlayerMovingRight = false;
 		}
-		if (Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN))
+		if (Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.DOWN))
 		{
 			attack();
 		}
-		if (Gdx.input.isKeyJustPressed(Keys.SHIFT_LEFT))
+		if (Gdx.input.isKeyJustPressed(Keys.SHIFT_LEFT) || Gdx.input.isKeyJustPressed(Keys.SHIFT_RIGHT))
 		{
 			shootFireBall();
 		}
-		if (Gdx.input.isKeyJustPressed(Keys.CONTROL_LEFT))
+		if (Gdx.input.isKeyJustPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyJustPressed(Keys.CONTROL_RIGHT))
 		{
 			useShield();
 		}
@@ -785,49 +802,6 @@ public class PPMain extends ApplicationAdapter
 			gameState = GameState.MENU;
 		}
 
-		if (Gdx.input.isButtonPressed(0))
-		{
-			if (touchPos.x > 4 + 4 + 256 && touchPos.x < 4 + 4 + 256 + 256)
-			{
-				if (touchPos.y > 4 && touchPos.y < 4 + 128)
-				{
-					if (x > 16)
-					{
-						x -= 800 * Gdx.graphics.getDeltaTime();
-						isPlayerMovingLeft = true;
-						isPlayerMovingRight = false;
-					}
-				}
-			} else if (touchPos.x > 765 && touchPos.x < 1015)
-			{
-				if (touchPos.y > 8 && touchPos.y < 8 + 128)
-				{
-					if (x < WIDTH - (256 + 16))
-					{
-						x += 800 * Gdx.graphics.getDeltaTime();
-						isPlayerMovingLeft = false;
-						isPlayerMovingRight = true;
-					}
-				}
-			}
-			// WIDTH / 2 - (changeCharButton.getWidth() / 2), HEIGHT -
-			// changeCharButton.getHeight()
-			// if (touchPos.x > 515 && touchPos.x < 515 + 256)
-			// {
-			// if (touchPos.y > 655)
-			// {
-			// try
-			// {
-			// Thread.sleep(250);
-			// } catch (InterruptedException e)
-			// {
-			// e.printStackTrace();
-			// }
-			// gameState = GameState.CHARACTER_SELECTION;
-			//
-			// }
-			// }
-		}
 		logic(touchPos.x, touchPos.y);
 
 		batch.begin();
@@ -916,11 +890,14 @@ public class PPMain extends ApplicationAdapter
 			batch.draw(shield, x, y);
 		}
 
-		batch.draw(attackButton, 4, 4);
-		batch.draw(leftButton, (256 + 4), 4);
-		batch.draw(fireBallButton, WIDTH / 2 - (128), 4);
-		batch.draw(jumpButton, WIDTH - (256 + 4), 4);
-		batch.draw(rightButton, WIDTH - (512 + 4), 4);
+		if (Gdx.app.getType() == ApplicationType.Android)
+		{
+			batch.draw(attackButton, 4, 4);
+			batch.draw(leftButton, (256 + 4), 4);
+			batch.draw(fireBallButton, WIDTH / 2 - (128), 4);
+			batch.draw(jumpButton, WIDTH - (256 + 4), 4);
+			batch.draw(rightButton, WIDTH - (512 + 4), 4);
+		}
 		batch.draw(changeCharButton, 4, attackButton.getHeight() + 8);
 
 		batch.end();
@@ -932,10 +909,34 @@ public class PPMain extends ApplicationAdapter
 		player.x = x;
 		player.y = 64;
 		npc.x = ex;
-
 		if (Gdx.input.isButtonPressed(0))
 		{
-
+			if (mX > 4 + 4 + 256 && mX < 4 + 4 + 256 + 256)
+			{
+				if (mY > 4 && mY < 4 + 128)
+				{
+					if (x > 16)
+					{
+						x -= 800 * Gdx.graphics.getDeltaTime();
+						isPlayerMovingLeft = true;
+						isPlayerMovingRight = false;
+					}
+				}
+			} else if (mX > 765 && mX < 1015)
+			{
+				if (mY > 8 && mY < 8 + 128)
+				{
+					if (x < WIDTH - (256 + 16))
+					{
+						x += 800 * Gdx.graphics.getDeltaTime();
+						isPlayerMovingLeft = false;
+						isPlayerMovingRight = true;
+					}
+				}
+			}
+		}
+		if (Gdx.input.justTouched())
+		{
 			if (mX > 4 && mX < 4 + 256 && mY > (attackButton.getHeight() + 8) && mY < (attackButton.getHeight() + 8) + 64)
 			{
 				try
@@ -948,47 +949,44 @@ public class PPMain extends ApplicationAdapter
 				gameState = GameState.CHARACTER_SELECTION;
 
 			}
-			if (mX > 4 && mX < 4 + 256)
-			{
-				if (mY > 4 && mY < 4 + 128)
-				{
-					// attack button
-					isPressingButton = true;
-					attack();
-				}
-			} else if (mX > 1025 && mX < 1272)
-			{
-				if (mY > 8 && mY < 4 + 122)
-				{
-					// jump button
-					isPressingButton2 = true;
 
-					if (y < 70)
-					{
-						jump();
-					}
-				}
-			} else if (mX > 516 && mX < 764)
+			if (Gdx.app.getType() == ApplicationType.Android)
 			{
-				if (mY > 8 && mY < 4 + 122)
-				{
-					if (!renderFireBall)
-					{
-						// fireball button
-						shootFireBall();
-					}
-				}
-			} else
-			{
-				isPressingButton2 = false;
-				isPressingButton = false;
-			}
 
-			if (mX > 4 && mX < 260)
-			{
-				if (mY > 650 && mY < 716)
+				if (mX > 4 && mX < 4 + 256)
 				{
-					// gameState = GameState.MENU;
+					if (mY > 4 && mY < 4 + 128)
+					{
+						// attack button
+						isPressingButton = true;
+						attack();
+					}
+				} else if (mX > 1025 && mX < 1272)
+				{
+					if (mY > 8 && mY < 4 + 122)
+					{
+						// jump button
+						isPressingButton2 = true;
+
+						if (y < 70)
+						{
+							jump();
+						}
+					}
+				} else if (mX > 516 && mX < 764)
+				{
+					if (mY > 8 && mY < 4 + 122)
+					{
+						if (!renderFireBall)
+						{
+							// fireball button
+							shootFireBall();
+						}
+					}
+				} else
+				{
+					isPressingButton2 = false;
+					isPressingButton = false;
 				}
 			}
 
@@ -1095,43 +1093,43 @@ public class PPMain extends ApplicationAdapter
 		thread.start();
 	}
 
+	Thread thread3;
+
 	private void attack()
 	{
 
-		if (!clicking)
+		kunch = true;
+		if (npc.overlaps(player))
 		{
-			kunch = true;
-			if (npc.overlaps(player))
+			thread3 = new Thread(new Runnable()
 			{
-				// deal damage
 
-				Thread thread = new Thread(new Runnable()
+				@Override
+				public void run()
 				{
-
-					@Override
-					public void run()
+					if (isSoundOn)
 					{
-						overlapping = true;
-						// hitSound.play();
-						try
-						{
-							Thread.sleep(250);
-						} catch (InterruptedException e)
-						{
-							e.printStackTrace();
-						}
-
-						overlapping = false;
+						hitSound.play();
 					}
-				});
-				thread.start();
-			} else
+				}
+			});
+			thread3.start();
+		} else
+		{
+			thread3 = new Thread(new Runnable()
 			{
-				overlapping = false;
-			}
-		}
 
-		clicking = true;
+				@Override
+				public void run()
+				{
+					if (isSoundOn)
+					{
+						whooshSound.play();
+					}
+				}
+			});
+			thread3.start();
+		}
 		Thread thread = new Thread(new Runnable()
 		{
 
