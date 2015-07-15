@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.input.GestureDetector;
+import com.badlogic.gdx.maps.Map;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
@@ -21,9 +22,6 @@ import com.badlogic.gdx.math.Vector3;
  * @author ssebs
  */
 
-// TODO: redesign art, health of both characters(also fix the hit amount when
-// punching), diff maps, shield
-
 public class PPMain extends ApplicationAdapter
 {
 	final int WIDTH = 1280;
@@ -32,12 +30,14 @@ public class PPMain extends ApplicationAdapter
 	Preferences preferences;
 
 	SpriteBatch batch;
-	Texture background, menu, controls, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
+	Texture background, menu, controls, maps, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
 	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, fireBallButton, mute, sound;
 	OrthographicCamera camera;
 	Rectangle player, npc;
 
-	int x = 256 + 64, y = 64, ex = WIDTH - (256 + 64), wy = 64, fighterHealth = 100, enemyHealth = 100;
+	int x = 256 + 64, y = 64, ex = WIDTH - (256 + 64), wy = 64;
+	int fighterHealth = 100, enemyHealth = 100;
+	int mapID;
 	int fbX, fbY;// fireball coords
 
 	private static final int FRAME_COLS = 2;
@@ -77,7 +77,7 @@ public class PPMain extends ApplicationAdapter
 
 	enum GameState
 	{
-		MENU, PLAY, CONTROLS, CHARACTER_SELECTION;
+		MENU, PLAY, CONTROLS, CHARACTER_SELECTION, MAP_SELECTION;
 	}
 
 	enum CharacterColor
@@ -272,10 +272,10 @@ public class PPMain extends ApplicationAdapter
  * 
  * 
  * */
-		background = new Texture(Gdx.files.internal("data/Screens/Background.png"));
 		menu = new Texture(Gdx.files.internal("data/Screens/Menu.png"));
 		controls = new Texture(Gdx.files.internal("data/Screens/Controls.png"));
 		charSelect = new Texture(Gdx.files.internal("data/Screens/CharacterSelection.png"));
+		maps = new Texture(Gdx.files.internal("data/Screens/Maps.png"));
 
 		backButton = new Texture(Gdx.files.internal("data/Buttons/Back.png"));
 		attackButton = new Texture(Gdx.files.internal("data/Buttons/Attack.png"));
@@ -330,9 +330,126 @@ public class PPMain extends ApplicationAdapter
 		case CHARACTER_SELECTION:
 			renderCharSelect();
 			break;
+		case MAP_SELECTION:
+			renderMapSelection();
+			break;
 		default:
 			break;
 		}
+	}
+
+	private void renderMapSelection()
+	{
+		batch.begin();
+		batch.draw(maps, 0, 0);
+		batch.end();
+
+		// from here
+		Vector3 touchPos;
+		touchPos = new Vector3();
+		touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+		camera.unproject(touchPos);
+		debugging = true;
+		if (debugging)
+		{
+			System.out.println("X" + (int) touchPos.x);
+			System.out.println("Y" + (int) touchPos.y);
+		}
+		// to here is so the display coords work
+		if (Gdx.input.isButtonPressed(0))
+		{
+			if (touchPos.x > 85 && touchPos.x < 565)
+			{
+				if (touchPos.y > 355 && touchPos.y < 630)
+				{
+					if (debugging)
+					{
+						// top left
+						System.out.println("TOP LEFT");
+					}
+					loadMapTexture(1);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.PLAY;
+				}
+			}
+			if (touchPos.x > 705 && touchPos.x < 1190)
+			{
+				if (touchPos.y > 355 && touchPos.y < 630)
+				{
+					if (debugging)
+					{
+						// top left
+						System.out.println("TOP RIGHT");
+					}
+					loadMapTexture(2);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.PLAY;
+				}
+			}
+			if (touchPos.x > 85 && touchPos.x < 565)
+			{
+				if (touchPos.y > 65 && touchPos.y < 340)
+				{
+					if (debugging)
+					{
+						// top left
+						System.out.println("BOTT LEFT");
+					}
+					loadMapTexture(3);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.PLAY;
+				}
+			}
+			if (touchPos.x > 705 && touchPos.x < 1190)
+			{
+				if (touchPos.y > 65 && touchPos.y < 340)
+				{
+					if (debugging)
+					{
+						// top left
+						System.out.println("BOTT RIGHT");
+					}
+					loadMapTexture(4);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.PLAY;
+				}
+			}
+
+		}
+
+		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
+		{
+			gameState = GameState.CHARACTER_SELECTION;
+		}
+		if (Gdx.input.isKeyPressed(Keys.BACK))
+		{
+			gameState = GameState.CHARACTER_SELECTION;
+		}
+
 	}
 
 	private void renderCharSelect()
@@ -364,8 +481,21 @@ public class PPMain extends ApplicationAdapter
 					}
 					characterColor = CharacterColor.PINK;
 					loadCharTexture(characterColor);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					if (firstTimePlaying)
+					{
+						gameState = GameState.MAP_SELECTION;
+					} else
+					{
+						gameState = GameState.PLAY;
+					}
 					firstTimePlaying = false;
-					gameState = GameState.PLAY;
 				}
 			}
 			if (touchPos.x > 850 && touchPos.x < 1075)
@@ -379,8 +509,21 @@ public class PPMain extends ApplicationAdapter
 					}
 					characterColor = CharacterColor.RED;
 					loadCharTexture(characterColor);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					if (firstTimePlaying)
+					{
+						gameState = GameState.MAP_SELECTION;
+					} else
+					{
+						gameState = GameState.PLAY;
+					}
 					firstTimePlaying = false;
-					gameState = GameState.PLAY;
 				}
 			}
 			if (touchPos.x > 210 && touchPos.x < 435)
@@ -394,8 +537,21 @@ public class PPMain extends ApplicationAdapter
 					}
 					characterColor = CharacterColor.GREEN;
 					loadCharTexture(characterColor);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					if (firstTimePlaying)
+					{
+						gameState = GameState.MAP_SELECTION;
+					} else
+					{
+						gameState = GameState.PLAY;
+					}
 					firstTimePlaying = false;
-					gameState = GameState.PLAY;
 				}
 			}
 			if (touchPos.x > 850 && touchPos.x < 1075)
@@ -409,8 +565,21 @@ public class PPMain extends ApplicationAdapter
 					}
 					characterColor = CharacterColor.BLUE;
 					loadCharTexture(characterColor);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					if (firstTimePlaying)
+					{
+						gameState = GameState.MAP_SELECTION;
+					} else
+					{
+						gameState = GameState.PLAY;
+					}
 					firstTimePlaying = false;
-					gameState = GameState.PLAY;
 				}
 			}
 		}
@@ -1071,6 +1240,27 @@ public class PPMain extends ApplicationAdapter
 		{
 			fighter = new Texture(Gdx.files.internal("data/Player4/Stand.png"));
 			fighterKunch = new Texture(Gdx.files.internal("data/Player4/Kunch.png"));
+		}
+	}
+
+	private void loadMapTexture(int id)
+	{
+		switch (id)
+		{
+		case 1:
+			background = new Texture(Gdx.files.internal("data/Maps/Background1.png"));
+			break;
+		case 2:
+			background = new Texture(Gdx.files.internal("data/Maps/Background2.png"));
+			break;
+		case 3:
+			background = new Texture(Gdx.files.internal("data/Maps/Background3.png"));
+			break;
+		case 4:
+			background = new Texture(Gdx.files.internal("data/Maps/Background4.png"));
+			break;
+		default:
+			break;
 		}
 	}
 
