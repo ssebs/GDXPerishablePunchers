@@ -21,8 +21,8 @@ import com.badlogic.gdx.math.Vector3;
  * @author ssebs
  */
 
-// TODO: add change character option, redesign art, health of both characters,
-// diff maps, shield 
+// TODO: redesign art, health of both characters(also fix the hit amount when
+// punching), diff maps, shield
 
 public class PPMain extends ApplicationAdapter
 {
@@ -32,7 +32,7 @@ public class PPMain extends ApplicationAdapter
 	Preferences preferences;
 
 	SpriteBatch batch;
-	Texture background, menu, controls, backButton, attackButton, jumpButton, leftButton, rightButton, charSelect;
+	Texture background, menu, controls, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
 	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, fireBallButton, mute, sound;
 	OrthographicCamera camera;
 	Rectangle player, npc;
@@ -283,6 +283,7 @@ public class PPMain extends ApplicationAdapter
 		leftButton = new Texture(Gdx.files.internal("data/Buttons/Left.png"));
 		rightButton = new Texture(Gdx.files.internal("data/Buttons/Right.png"));
 		fireBallButton = new Texture(Gdx.files.internal("data/Buttons/FireBallButton.png"));
+		changeCharButton = new Texture(Gdx.files.internal("data/Buttons/ChangeChar.png"));
 		mute = new Texture(Gdx.files.internal("data/Buttons/Mute.png"));
 		sound = new Texture(Gdx.files.internal("data/Buttons/Sound.png"));
 
@@ -611,7 +612,6 @@ public class PPMain extends ApplicationAdapter
 			gameState = GameState.MENU;
 		}
 
-		// ////////make touch left move guy left & vice versa,;
 		if (Gdx.input.isButtonPressed(0))
 		{
 			if (touchPos.x > 4 + 4 + 256 && touchPos.x < 4 + 4 + 256 + 256)
@@ -637,8 +637,24 @@ public class PPMain extends ApplicationAdapter
 					}
 				}
 			}
-		}
+			// WIDTH / 2 - (changeCharButton.getWidth() / 2), HEIGHT -
+			// changeCharButton.getHeight()
+			if (touchPos.x > 515 && touchPos.x < 515 + 256)
+			{
+				if (touchPos.y > 655)
+				{
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.CHARACTER_SELECTION;
 
+				}
+			}
+		}
 		logic(touchPos.x, touchPos.y);
 
 		batch.begin();
@@ -727,8 +743,10 @@ public class PPMain extends ApplicationAdapter
 		batch.draw(fireBallButton, WIDTH / 2 - (128), 4);
 		batch.draw(jumpButton, WIDTH - (256 + 4), 4);
 		batch.draw(rightButton, WIDTH - (512 + 4), 4);
+		batch.draw(changeCharButton, WIDTH / 2 - (changeCharButton.getWidth() / 2), HEIGHT - changeCharButton.getHeight());
 
 		batch.end();
+
 	}
 
 	private void logic(float mX, float mY)
