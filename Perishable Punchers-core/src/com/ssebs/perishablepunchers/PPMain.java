@@ -935,7 +935,19 @@ public class PPMain extends ApplicationAdapter
 
 		if (Gdx.input.isButtonPressed(0))
 		{
-			if (mX > 4 && mX < 4 + 256)
+
+			 if (mX > 515 && mX < 515 + 256 && mY > 655)
+			{
+				try
+				{
+					Thread.sleep(250);
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+				gameState = GameState.CHARACTER_SELECTION;
+
+			}else if (mX > 4 && mX < 4 + 256)
 			{
 				if (mY > 4 && mY < 4 + 128)
 				{
@@ -955,7 +967,7 @@ public class PPMain extends ApplicationAdapter
 						jump();
 					}
 				}
-			} else if (mX > 516 && mX < 764)
+			}  else if (mX > 516 && mX < 764)
 			{
 				if (mY > 8 && mY < 4 + 122)
 				{
