@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.maps.Map;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
@@ -31,7 +30,7 @@ public class PPMain extends ApplicationAdapter
 
 	SpriteBatch batch;
 	Texture background, menu, controls, maps, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
-	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, fireBallButton, mute, sound;
+	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, shield, fireBallButton, mute, sound;
 	OrthographicCamera camera;
 	Rectangle player, npc;
 
@@ -63,6 +62,7 @@ public class PPMain extends ApplicationAdapter
 	boolean renderFireBall = false;
 	boolean isPlayerMovingRight = false;
 	boolean isPlayerMovingLeft = false;
+	boolean isUsingShield = false;
 
 	// boolean isSoundOn = true;// THIS SHOULD BE A SETTING
 	boolean isSoundOn;
@@ -290,6 +290,7 @@ public class PPMain extends ApplicationAdapter
 		enemy = new Texture(Gdx.files.internal("data/Dargon/Stand.png"));
 		enemyAttack = new Texture(Gdx.files.internal("data/Dargon/Kunch.png"));
 		explosion = new Texture(Gdx.files.internal("data/ExplosionHD75Opacity.png"));
+		shield = new Texture(Gdx.files.internal("data/Shield.png"));
 
 		player = new Rectangle(x, y, 256, 256);
 		npc = new Rectangle(ex, wy, 256, 256);
@@ -349,7 +350,6 @@ public class PPMain extends ApplicationAdapter
 		touchPos = new Vector3();
 		touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 		camera.unproject(touchPos);
-		debugging = true;
 		if (debugging)
 		{
 			System.out.println("X" + (int) touchPos.x);
@@ -762,13 +762,17 @@ public class PPMain extends ApplicationAdapter
 			isPlayerMovingLeft = false;
 			isPlayerMovingRight = false;
 		}
-		if (Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN))
+		if (Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.DOWN))
 		{
 			attack();
 		}
-		if (Gdx.input.isKeyPressed(Keys.SHIFT_LEFT))
+		if (Gdx.input.isKeyJustPressed(Keys.SHIFT_LEFT))
 		{
 			shootFireBall();
+		}
+		if (Gdx.input.isKeyJustPressed(Keys.CONTROL_LEFT))
+		{
+			useShield();
 		}
 
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
@@ -907,6 +911,11 @@ public class PPMain extends ApplicationAdapter
 			batch.draw(explosion, fbX, fbY);
 		}
 
+		if (isUsingShield)
+		{
+			batch.draw(shield, x, y);
+		}
+
 		batch.draw(attackButton, 4, 4);
 		batch.draw(leftButton, (256 + 4), 4);
 		batch.draw(fireBallButton, WIDTH / 2 - (128), 4);
@@ -984,6 +993,28 @@ public class PPMain extends ApplicationAdapter
 
 		dargonAI();
 
+	}
+
+	private void useShield()
+	{
+		Thread thread = new Thread(new Runnable()
+		{
+
+			@Override
+			public void run()
+			{
+				isUsingShield = true;
+				try
+				{
+					Thread.sleep(2500);
+				} catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+				isUsingShield = false;
+			}
+		});
+		thread.start();
 	}
 
 	private void jump()
@@ -1186,38 +1217,41 @@ public class PPMain extends ApplicationAdapter
 		} else
 		// touching
 		{
-			isMovingLeft = false;
-			isMovingRight = false;
-			int rand = (int) (Math.random() * 600);
-			// System.out.println(rand);
-			if (rand > 550)
+			if (!isUsingShield)
 			{
-				enemyAttacking = true;
-				if (isSoundOn)
+				isMovingLeft = false;
+				isMovingRight = false;
+				int rand = (int) (Math.random() * 600);
+				// System.out.println(rand);
+				if (rand > 550)
 				{
-					// System.out.println("ENEMY HIT");
-					hitSound.play();
-				}
-				Thread thread = new Thread(new Runnable()
-				{
-
-					@Override
-					public void run()
+					enemyAttacking = true;
+					if (isSoundOn)
 					{
-						try
-						{
-							Thread.sleep(150);
-						} catch (InterruptedException e)
-						{
-							e.printStackTrace();
-						}
-						enemyAttacking = false;
+						// System.out.println("ENEMY HIT");
+						hitSound.play();
 					}
-				});
-				thread.start();
-			} else
-			{
+					Thread thread = new Thread(new Runnable()
+					{
 
+						@Override
+						public void run()
+						{
+							try
+							{
+								Thread.sleep(150);
+							} catch (InterruptedException e)
+							{
+								e.printStackTrace();
+							}
+							enemyAttacking = false;
+						}
+					});
+					thread.start();
+				} else
+				{
+
+				}
 			}
 		}
 	}
