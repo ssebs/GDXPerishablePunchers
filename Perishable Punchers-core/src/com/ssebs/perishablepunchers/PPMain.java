@@ -262,18 +262,18 @@ public class PPMain extends ApplicationAdapter
 		}
 
 		/*
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * */
+		* 
+		* 
+		* 
+		* 
+		* 
+		* 
+		* 
+		* 
+		* 
+		* 
+		* 
+		* */
 		menu = new Texture(Gdx.files.internal("data/Screens/Menu.png"));
 		controls = new Texture(Gdx.files.internal("data/Screens/Controls.png"));
 		charSelect = new Texture(Gdx.files.internal("data/Screens/CharacterSelection.png"));
@@ -341,12 +341,8 @@ public class PPMain extends ApplicationAdapter
 		}
 	}
 
-	private void renderMapSelection()
+	private void renderMenu()
 	{
-		batch.begin();
-		batch.draw(maps, 0, 0);
-		batch.end();
-
 		// from here
 		Vector3 touchPos;
 		touchPos = new Vector3();
@@ -356,40 +352,47 @@ public class PPMain extends ApplicationAdapter
 		{
 			System.out.println("X" + (int) touchPos.x);
 			System.out.println("Y" + (int) touchPos.y);
+			// to here is so the display coords work
 		}
-		// to here is so the display coords work
+		if (Gdx.input.isKeyJustPressed(Keys.ENTER))
+		{
+			if (firstTimePlaying)
+			{
+				characterColor = CharacterColor.PINK;
+				mapID = 1;
+				loadCharTexture(characterColor);
+				loadMapTexture(mapID);
+				gameState = GameState.PLAY;
+				firstTimePlaying = false;
+			} else
+			{
+				gameState = GameState.PLAY;
+			}
+		}
+
 		if (Gdx.input.isButtonPressed(0))
 		{
-			if (touchPos.x > 85 && touchPos.x < 565)
+			if (touchPos.x > 400 && touchPos.x < 875)
 			{
-				if (touchPos.y > 355 && touchPos.y < 630)
+				if (touchPos.y > 390 && touchPos.y < 545)
 				{
-					if (debugging)
+					if (!firstTimePlaying)
 					{
-						// top left
-						System.out.println("TOP LEFT");
+						// in play button
+
+						gameState = GameState.PLAY;
+					} else
+					{
+						gameState = GameState.CHARACTER_SELECTION;
+
 					}
-					loadMapTexture(1);
-					try
-					{
-						Thread.sleep(250);
-					} catch (InterruptedException e)
-					{
-						e.printStackTrace();
-					}
-					gameState = GameState.PLAY;
 				}
 			}
-			if (touchPos.x > 705 && touchPos.x < 1190)
+			if (touchPos.x > 475 && touchPos.x < 800)
 			{
-				if (touchPos.y > 355 && touchPos.y < 630)
+				if (touchPos.y > 225 && touchPos.y < 330)
 				{
-					if (debugging)
-					{
-						// top left
-						System.out.println("TOP RIGHT");
-					}
-					loadMapTexture(2);
+					// in controls button
 					try
 					{
 						Thread.sleep(250);
@@ -397,60 +400,46 @@ public class PPMain extends ApplicationAdapter
 					{
 						e.printStackTrace();
 					}
-					gameState = GameState.PLAY;
+					gameState = GameState.CONTROLS;
 				}
 			}
-			if (touchPos.x > 85 && touchPos.x < 565)
+			if (touchPos.x > 475 && touchPos.x < 800)
 			{
-				if (touchPos.y > 65 && touchPos.y < 340)
+				if (touchPos.y > 60 && touchPos.y < 170)
 				{
-					if (debugging)
-					{
-						// top left
-						System.out.println("BOTT LEFT");
-					}
-					loadMapTexture(3);
-					try
-					{
-						Thread.sleep(250);
-					} catch (InterruptedException e)
-					{
-						e.printStackTrace();
-					}
-					gameState = GameState.PLAY;
+					// in quit button
+					dispose();
+					System.exit(0);
 				}
 			}
-			if (touchPos.x > 705 && touchPos.x < 1190)
+			if (touchPos.x > 16 && touchPos.x < 64 + 16)
 			{
-				if (touchPos.y > 65 && touchPos.y < 340)
+				if (touchPos.y > 16 && touchPos.y < 64 + 16)
 				{
-					if (debugging)
-					{
-						// top left
-						System.out.println("BOTT RIGHT");
-					}
-					loadMapTexture(4);
+					// in mute button
+					isSoundOn = !isSoundOn;
+					preferences.putBoolean("isSoundOn", isSoundOn);
+					preferences.flush();
 					try
 					{
-						Thread.sleep(250);
-					} catch (InterruptedException e)
+						Thread.sleep(100);
+					} catch (Exception e)
 					{
-						e.printStackTrace();
 					}
-					gameState = GameState.PLAY;
 				}
 			}
 
 		}
-
-		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
+		batch.begin();
+		batch.draw(menu, 0, 0);
+		if (isSoundOn)
 		{
-			gameState = GameState.CHARACTER_SELECTION;
-		}
-		if (Gdx.input.isKeyPressed(Keys.BACK))
+			batch.draw(sound, 16, 16);
+		} else
 		{
-			gameState = GameState.CHARACTER_SELECTION;
+			batch.draw(mute, 16, 16);
 		}
+		batch.end();
 
 	}
 
@@ -597,30 +586,12 @@ public class PPMain extends ApplicationAdapter
 
 	}
 
-	private void renderControls()
+	private void renderMapSelection()
 	{
 		batch.begin();
-		batch.draw(controls, 0, 0);
+		batch.draw(maps, 0, 0);
 		batch.end();
-		if (Gdx.input.isKeyPressed(Keys.ESCAPE) || Gdx.input.isButtonPressed(0))
-		{
-			try
-			{
-				Thread.sleep(250);
-			} catch (InterruptedException e)
-			{
-				e.printStackTrace();
-			}
-			gameState = GameState.MENU;
-		}
-		if (Gdx.input.isKeyPressed(Keys.BACK))
-		{
-			gameState = GameState.MENU;
-		}
-	}
 
-	private void renderMenu()
-	{
 		// from here
 		Vector3 touchPos;
 		touchPos = new Vector3();
@@ -630,40 +601,20 @@ public class PPMain extends ApplicationAdapter
 		{
 			System.out.println("X" + (int) touchPos.x);
 			System.out.println("Y" + (int) touchPos.y);
-			// to here is so the display coords work
 		}
-		if (Gdx.input.isKeyJustPressed(Keys.ENTER))
-		{
-			characterColor = CharacterColor.PINK;
-			mapID = 1;
-			loadCharTexture(characterColor);
-			loadMapTexture(mapID);
-			gameState = GameState.PLAY;
-		}
-
+		// to here is so the display coords work
 		if (Gdx.input.isButtonPressed(0))
 		{
-			if (touchPos.x > 400 && touchPos.x < 875)
+			if (touchPos.x > 85 && touchPos.x < 565)
 			{
-				if (touchPos.y > 390 && touchPos.y < 545)
+				if (touchPos.y > 355 && touchPos.y < 630)
 				{
-					if (!firstTimePlaying)
+					if (debugging)
 					{
-						// in play button
-
-						gameState = GameState.PLAY;
-					} else
-					{
-						gameState = GameState.CHARACTER_SELECTION;
-
+						// top left
+						System.out.println("TOP LEFT");
 					}
-				}
-			}
-			if (touchPos.x > 475 && touchPos.x < 800)
-			{
-				if (touchPos.y > 225 && touchPos.y < 330)
-				{
-					// in controls button
+					loadMapTexture(1);
 					try
 					{
 						Thread.sleep(250);
@@ -671,46 +622,80 @@ public class PPMain extends ApplicationAdapter
 					{
 						e.printStackTrace();
 					}
-					gameState = GameState.CONTROLS;
+					gameState = GameState.PLAY;
 				}
 			}
-			if (touchPos.x > 475 && touchPos.x < 800)
+			if (touchPos.x > 705 && touchPos.x < 1190)
 			{
-				if (touchPos.y > 60 && touchPos.y < 170)
+				if (touchPos.y > 355 && touchPos.y < 630)
 				{
-					// in quit button
-					dispose();
-					System.exit(0);
-				}
-			}
-			if (touchPos.x > 16 && touchPos.x < 64 + 16)
-			{
-				if (touchPos.y > 16 && touchPos.y < 64 + 16)
-				{
-					// in mute button
-					isSoundOn = !isSoundOn;
-					preferences.putBoolean("isSoundOn", isSoundOn);
-					preferences.flush();
+					if (debugging)
+					{
+						// top left
+						System.out.println("TOP RIGHT");
+					}
+					loadMapTexture(2);
 					try
 					{
-						Thread.sleep(100);
-					} catch (Exception e)
+						Thread.sleep(250);
+					} catch (InterruptedException e)
 					{
+						e.printStackTrace();
 					}
+					gameState = GameState.PLAY;
+				}
+			}
+			if (touchPos.x > 85 && touchPos.x < 565)
+			{
+				if (touchPos.y > 65 && touchPos.y < 340)
+				{
+					if (debugging)
+					{
+						// top left
+						System.out.println("BOTT LEFT");
+					}
+					loadMapTexture(3);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.PLAY;
+				}
+			}
+			if (touchPos.x > 705 && touchPos.x < 1190)
+			{
+				if (touchPos.y > 65 && touchPos.y < 340)
+				{
+					if (debugging)
+					{
+						// top left
+						System.out.println("BOTT RIGHT");
+					}
+					loadMapTexture(4);
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.PLAY;
 				}
 			}
 
 		}
-		batch.begin();
-		batch.draw(menu, 0, 0);
-		if (isSoundOn)
+
+		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
 		{
-			batch.draw(sound, 16, 16);
-		} else
-		{
-			batch.draw(mute, 16, 16);
+			gameState = GameState.CHARACTER_SELECTION;
 		}
-		batch.end();
+		if (Gdx.input.isKeyPressed(Keys.BACK))
+		{
+			gameState = GameState.CHARACTER_SELECTION;
+		}
 
 	}
 
@@ -750,7 +735,7 @@ public class PPMain extends ApplicationAdapter
 			System.out.println("X" + (int) touchPos.x);
 			System.out.println("Y" + (int) touchPos.y);
 		}
-		if (Gdx.input.isKeyPressed(Keys.UP) || Gdx.input.isKeyPressed(Keys.W))
+		if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W))
 		{
 			if (y < 65)
 			{
@@ -897,8 +882,12 @@ public class PPMain extends ApplicationAdapter
 			batch.draw(fireBallButton, WIDTH / 2 - (128), 4);
 			batch.draw(jumpButton, WIDTH - (256 + 4), 4);
 			batch.draw(rightButton, WIDTH - (512 + 4), 4);
+			batch.draw(changeCharButton, 4, attackButton.getHeight() + 8);
+		} else
+		{
+			batch.draw(changeCharButton, 4, 8);
+			batch.draw(backButton, 4, HEIGHT - (64 + 8));
 		}
-		batch.draw(changeCharButton, 4, attackButton.getHeight() + 8);
 
 		batch.end();
 
@@ -909,50 +898,79 @@ public class PPMain extends ApplicationAdapter
 		player.x = x;
 		player.y = 64;
 		npc.x = ex;
-		if (Gdx.input.isButtonPressed(0))
+
+		if (Gdx.app.getType() == ApplicationType.Android)
 		{
-			if (mX > 4 + 4 + 256 && mX < 4 + 4 + 256 + 256)
+			if (Gdx.input.isButtonPressed(0))
 			{
-				if (mY > 4 && mY < 4 + 128)
+				if (mX > 4 + 4 + 256 && mX < 4 + 4 + 256 + 256)
 				{
-					if (x > 16)
+					if (mY > 4 && mY < 4 + 128)
 					{
-						x -= 800 * Gdx.graphics.getDeltaTime();
-						isPlayerMovingLeft = true;
-						isPlayerMovingRight = false;
+						if (x > 16)
+						{
+							x -= 800 * Gdx.graphics.getDeltaTime();
+							isPlayerMovingLeft = true;
+							isPlayerMovingRight = false;
+						}
 					}
 				}
-			} else if (mX > 765 && mX < 1015)
-			{
-				if (mY > 8 && mY < 8 + 128)
+				if (mX > 765 && mX < 1015)
 				{
-					if (x < WIDTH - (256 + 16))
+					if (mY > 8 && mY < 8 + 128)
 					{
-						x += 800 * Gdx.graphics.getDeltaTime();
-						isPlayerMovingLeft = false;
-						isPlayerMovingRight = true;
+						if (x < WIDTH - (256 + 16))
+						{
+							x += 800 * Gdx.graphics.getDeltaTime();
+							isPlayerMovingLeft = false;
+							isPlayerMovingRight = true;
+						}
 					}
 				}
 			}
 		}
 		if (Gdx.input.justTouched())
 		{
-			if (mX > 4 && mX < 4 + 256 && mY > (attackButton.getHeight() + 8) && mY < (attackButton.getHeight() + 8) + 64)
+			if (Gdx.app.getType() == ApplicationType.Desktop)
 			{
-				try
+				if (mX > 4 && mX < 4 + 256 && mY > (8) && mY < (8) + 64)
 				{
-					Thread.sleep(250);
-				} catch (InterruptedException e)
-				{
-					e.printStackTrace();
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.CHARACTER_SELECTION;
 				}
-				gameState = GameState.CHARACTER_SELECTION;
 
+				if (mX > 4 && mX < 4 + 128 && mY > HEIGHT - (64 + 8))
+				{
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.MENU;
+				}
 			}
-
 			if (Gdx.app.getType() == ApplicationType.Android)
 			{
+				if (mX > 4 && mX < 4 + 256 && mY > (attackButton.getHeight() + 8) && mY < (attackButton.getHeight() + 8) + 64)
+				{
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.CHARACTER_SELECTION;
 
+				}
 				if (mX > 4 && mX < 4 + 256)
 				{
 					if (mY > 4 && mY < 4 + 128)
@@ -961,7 +979,8 @@ public class PPMain extends ApplicationAdapter
 						isPressingButton = true;
 						attack();
 					}
-				} else if (mX > 1025 && mX < 1272)
+				}
+				if (mX > 1025 && mX < 1272)
 				{
 					if (mY > 8 && mY < 4 + 122)
 					{
@@ -973,7 +992,8 @@ public class PPMain extends ApplicationAdapter
 							jump();
 						}
 					}
-				} else if (mX > 516 && mX < 764)
+				}
+				if (mX > 516 && mX < 764)
 				{
 					if (mY > 8 && mY < 4 + 122)
 					{
@@ -1028,69 +1048,54 @@ public class PPMain extends ApplicationAdapter
 		thread.start();
 	}
 
+	Thread thread4;
+
 	private void jump()
 	{
 		if (isSoundOn)
 		{
 			jumpSound.play();
 		}
-		Thread thread = new Thread(new Runnable()
-		{
 
-			@Override
+		thread4 = new Thread(new Runnable()
+		{
 			public void run()
 			{
-				int speed = 8;
+
 				while (y < 400)
 				{
-
-					y += 800 * Gdx.graphics.getDeltaTime();
-					if (y < 256)
-					{
-						speed = 10;
-					} else if (y > 300)
-					{
-						speed = 15;
-					} else
-					{
-						speed = 15;
-					}
+					y += 600 * Gdx.graphics.getDeltaTime();
 					try
 					{
-						Thread.sleep(speed);
+						Thread.sleep(5);
 					} catch (InterruptedException e)
 					{
 						e.printStackTrace();
 					}
 				}
-				while (y > 64)
+				try
 				{
-					y -= 600 * Gdx.graphics.getDeltaTime();
-
-					if (y < 256)
-					{
-						speed = 10;
-					} else if (y > 300)
-					{
-						speed = 15;
-					} else
-					{
-						speed = 15;
-					}
+					Thread.sleep(50);
+				} catch (InterruptedException e1)
+				{
+					e1.printStackTrace();
+				}
+				while (y > 63)
+				{
+					y -= 800 * Gdx.graphics.getDeltaTime();
 					try
 					{
-						Thread.sleep(speed);
+						Thread.sleep(5);
 					} catch (InterruptedException e)
 					{
 						e.printStackTrace();
 					}
-					if (y > 64 && y < 16)
-						y = 64;
 				}
 
 			}
+
 		});
-		thread.start();
+		thread4.start();
 	}
 
 	Thread thread3;
@@ -1267,6 +1272,28 @@ public class PPMain extends ApplicationAdapter
 		}
 	}
 
+	private void renderControls()
+	{
+		batch.begin();
+		batch.draw(controls, 0, 0);
+		batch.end();
+		if (Gdx.input.isKeyPressed(Keys.ESCAPE) || Gdx.input.isButtonPressed(0))
+		{
+			try
+			{
+				Thread.sleep(250);
+			} catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+			gameState = GameState.MENU;
+		}
+		if (Gdx.input.isKeyPressed(Keys.BACK))
+		{
+			gameState = GameState.MENU;
+		}
+	}
+
 	private void loadCharTexture(CharacterColor color)
 	{
 		if (color == CharacterColor.PINK)
@@ -1313,11 +1340,45 @@ public class PPMain extends ApplicationAdapter
 	public void dispose()
 	{
 		super.dispose();
+
+		jumpSound.dispose();
+		hitSound.dispose();
+		fireBallSound.dispose();
+		whooshSound.dispose();
+
 		batch.dispose();
-		background.dispose();
+		menu.dispose();
+		controls.dispose();
+		maps.dispose();
+		backButton.dispose();
+		attackButton.dispose();
+		jumpButton.dispose();
+		leftButton.dispose();
+		rightButton.dispose();
+		changeCharButton.dispose();
+		charSelect.dispose();
+		enemyAttack.dispose();
+		enemy.dispose();
+		explosion.dispose();
+		shield.dispose();
+		fireBallButton.dispose();
+		mute.dispose();
+		sound.dispose();
+		walkSheet.dispose();
+		walkSheet2.dispose();
+		p1WalkRSheet.dispose();
+		p1WalkLSheet.dispose();
+		p2WalkRSheet.dispose();
+		p2WalkLSheet.dispose();
+		p3WalkRSheet.dispose();
+		p3WalkLSheet.dispose();
+		p4WalkRSheet.dispose();
+		p4WalkLSheet.dispose();
+
 		if (!firstTimePlaying)
 		{
 			fighter.dispose();
+			background.dispose();
 		}
 		firstTimePlaying = false;
 	}
