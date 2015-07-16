@@ -31,7 +31,7 @@ public class PPMain extends ApplicationAdapter
 	Preferences preferences;
 
 	SpriteBatch batch;
-	Texture background, menu, controls, maps, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
+	Texture background, menu, controls, maps, shieldButton, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
 	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, shield, fireBallButton, mute, sound;
 	OrthographicCamera camera;
 	Rectangle player, npc;
@@ -302,6 +302,7 @@ public class PPMain extends ApplicationAdapter
 		rightButton = new Texture(Gdx.files.internal("data/Buttons/Right.png"));
 		fireBallButton = new Texture(Gdx.files.internal("data/Buttons/FireBallButton.png"));
 		changeCharButton = new Texture(Gdx.files.internal("data/Buttons/ChangeChar.png"));
+		shieldButton = new Texture(Gdx.files.internal("data/Buttons/Shield.png"));
 		mute = new Texture(Gdx.files.internal("data/Buttons/Mute.png"));
 		sound = new Texture(Gdx.files.internal("data/Buttons/Sound.png"));
 
@@ -747,7 +748,6 @@ public class PPMain extends ApplicationAdapter
 		touchPos = new Vector3();
 		touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 		camera.unproject(touchPos);
-
 		if (debugging)
 		{
 			System.out.println("X" + (int) touchPos.x);
@@ -896,12 +896,13 @@ public class PPMain extends ApplicationAdapter
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 		{
-			batch.draw(attackButton, 4, 4);
-			batch.draw(leftButton, (256 + 4), 4);
-			batch.draw(fireBallButton, WIDTH / 2 - (128), 4);
-			batch.draw(jumpButton, WIDTH - (256 + 4), 4);
-			batch.draw(rightButton, WIDTH - (512 + 4), 4);
-			batch.draw(changeCharButton, 4, attackButton.getHeight() + 8);
+			batch.draw(leftButton, 4, 4);
+			batch.draw(attackButton, 8 + 128, 4);
+			batch.draw(rightButton, 12 + 256, 4);
+			batch.draw(jumpButton, 8 + 128, 128 + 8);
+			batch.draw(fireBallButton, WIDTH - (128 + 4), 4);
+			batch.draw(shieldButton, WIDTH - 256 - 8, 4);
+			batch.draw(changeCharButton, (WIDTH / 2) - 128, 4);
 		} else
 		{
 			batch.draw(changeCharButton, 4, 8);
@@ -955,12 +956,7 @@ public class PPMain extends ApplicationAdapter
 			// render finish it
 			isRenderingFinishIt = true;
 			isRenderingItDied = false;
-		} else
-		{
-			isRenderingFinishIt = false;
-			isRenderingItDied = false;
-		}
-		if (playerHeath < 1)
+		} else if (playerHeath < 1)
 		{
 			// render it dide
 			isRenderingItDied = true;
@@ -999,7 +995,7 @@ public class PPMain extends ApplicationAdapter
 		{
 			if (Gdx.input.isButtonPressed(0))
 			{
-				if (mX > 4 + 4 + 256 && mX < 4 + 4 + 256 + 256)
+				if (mX > 4 && mX < 4 + 128)
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
@@ -1014,11 +1010,11 @@ public class PPMain extends ApplicationAdapter
 						}
 					}
 				}
-				if (mX > 765 && mX < 1015)
+				if (mX > 12 + 256 && mX < 12 + 256 + 128)
 				{
-					if (mY > 8 && mY < 8 + 128)
+					if (mY > 4 && mY < 4 + 128)
 					{
-						if (x < WIDTH - (256 + 16))
+						if (x < WIDTH - (256 + 32))
 						{
 							if (canPlayerMove)
 							{
@@ -1061,7 +1057,8 @@ public class PPMain extends ApplicationAdapter
 			}
 			if (Gdx.app.getType() == ApplicationType.Android)
 			{
-				if (mX > 4 && mX < 4 + 256 && mY > (attackButton.getHeight() + 8) && mY < (attackButton.getHeight() + 8) + 64)
+				// (WIDTH / 2) - 128, 4
+				if (mX > (WIDTH / 2) - 128 && mX < (WIDTH / 2) - 128 + 256 && mY > 4 && mY < 4 + 64)
 				{
 					try
 					{
@@ -1073,21 +1070,30 @@ public class PPMain extends ApplicationAdapter
 					gameState = GameState.CHARACTER_SELECTION;
 
 				}
-				if (mX > 4 && mX < 4 + 256)
+				if (mX > WIDTH - 256 - 8 && mX < WIDTH - 256 - 8 + 128)
+				{
+					if (mY > 4 && mY < 4 + 128)
+					{
+						if (canPlayerMove)
+						{
+							useShield();
+						}
+					}
+				}
+				if (mX > 8 + 128 && mX < 8 + 128 + 128)
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
 						if (canPlayerMove)
 						{
 							// attack button
-							isPressingButton = true;
 							attack();
 						}
 					}
 				}
-				if (mX > 1025 && mX < 1272)
+				if (mX > 8 + 128 && mX < 8 + 128 + 128)
 				{
-					if (mY > 8 && mY < 4 + 122)
+					if (mY > 8 + 128 && mY < 8 + 128 + 128)
 					{
 						// jump button
 						isPressingButton2 = true;
@@ -1101,9 +1107,10 @@ public class PPMain extends ApplicationAdapter
 						}
 					}
 				}
-				if (mX > 516 && mX < 764)
+
+				if (mX > WIDTH - (128 + 4))
 				{
-					if (mY > 8 && mY < 4 + 122)
+					if (mY > 4 && mY < 4 + 128)
 					{
 						if (!renderFireBall)
 						{
@@ -1229,11 +1236,12 @@ public class PPMain extends ApplicationAdapter
 					if (isSoundOn)
 					{
 						hitSound.play();
-						if (enemyHealth > 0)
-						{
-							enemyHealth -= 5;
-						}
 					}
+					if (enemyHealth > 0)
+					{
+						enemyHealth -= 5;
+					}
+
 				}
 			});
 			thread3.start();
@@ -1365,15 +1373,17 @@ public class PPMain extends ApplicationAdapter
 						if (rand > 570)
 						{
 							enemyAttacking = true;
+
+							// System.out.println("ENEMY HIT");
 							if (isSoundOn)
 							{
-								// System.out.println("ENEMY HIT");
 								hitSound.play();
-								if (playerHeath > 0)
-								{
-									playerHeath -= 5;
-								}
 							}
+							if (playerHeath > 0)
+							{
+								playerHeath -= 5;
+							}
+
 							Thread thread = new Thread(new Runnable()
 							{
 
@@ -1510,7 +1520,9 @@ public class PPMain extends ApplicationAdapter
 		p3WalkLSheet.dispose();
 		p4WalkRSheet.dispose();
 		p4WalkLSheet.dispose();
-
+		finishIt.dispose();
+		itDied.dispose();
+		shieldButton.dispose();
 		if (!firstTimePlaying)
 		{
 			fighter.dispose();
