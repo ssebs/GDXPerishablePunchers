@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.input.GestureDetector;
@@ -36,9 +37,10 @@ public class PPMain extends ApplicationAdapter
 	Rectangle player, npc;
 
 	int x = 256 + 64, y = 64, ex = WIDTH - (256 + 64), wy = 64;
-	int fighterHealth = 100, enemyHealth = 100;
+	int playerHeath = 100, enemyHealth = 100;
 	int mapID;
 	int fbX, fbY;// fireball coords
+	int hitCounter = 0;
 
 	private static final int FRAME_COLS = 2;
 	private static final int FRAME_ROWS = 2;
@@ -64,6 +66,9 @@ public class PPMain extends ApplicationAdapter
 	boolean isPlayerMovingRight = false;
 	boolean isPlayerMovingLeft = false;
 	boolean isUsingShield = false;
+	boolean isRenderingFinishIt = false;
+	boolean isRenderingItDied = false;
+	boolean canPlayerMove = true;
 
 	// boolean isSoundOn = true;// THIS SHOULD BE A SETTING
 	boolean isSoundOn;
@@ -73,8 +78,12 @@ public class PPMain extends ApplicationAdapter
 
 	Sound jumpSound, hitSound, fireBallSound, whooshSound;
 
+	BitmapFont arial;
+
 	GameState gameState = GameState.MENU;
 	CharacterColor characterColor = CharacterColor.PINK;
+
+	Texture finishIt, itDied;
 
 	enum GameState
 	{
@@ -89,6 +98,7 @@ public class PPMain extends ApplicationAdapter
 	@Override
 	public void create()
 	{
+		arial = new BitmapFont(Gdx.files.internal("data/Arial.fnt"), Gdx.files.internal("data/Arial_0.png"), false);
 
 		jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Jump.wav"));
 		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Punch.wav"));
@@ -275,7 +285,13 @@ public class PPMain extends ApplicationAdapter
 		* 
 		* */
 		menu = new Texture(Gdx.files.internal("data/Screens/Menu.png"));
-		controls = new Texture(Gdx.files.internal("data/Screens/Controls.png"));
+		if (Gdx.app.getType() == ApplicationType.Android)
+		{
+			controls = new Texture(Gdx.files.internal("data/Screens/ControlsAndroid.png"));
+		} else
+		{
+			controls = new Texture(Gdx.files.internal("data/Screens/ControlsDesktop.png"));
+		}
 		charSelect = new Texture(Gdx.files.internal("data/Screens/CharacterSelection.png"));
 		maps = new Texture(Gdx.files.internal("data/Screens/Maps.png"));
 
@@ -293,6 +309,8 @@ public class PPMain extends ApplicationAdapter
 		enemyAttack = new Texture(Gdx.files.internal("data/Dargon/Kunch.png"));
 		explosion = new Texture(Gdx.files.internal("data/ExplosionHD75Opacity.png"));
 		shield = new Texture(Gdx.files.internal("data/Shield.png"));
+		finishIt = new Texture(Gdx.files.internal("data/FinishIt.png"));
+		itDied = new Texture(Gdx.files.internal("data/ItDied.png"));
 
 		player = new Rectangle(x, y, 256, 256);
 		npc = new Rectangle(ex, wy, 256, 256);
@@ -735,48 +753,49 @@ public class PPMain extends ApplicationAdapter
 			System.out.println("X" + (int) touchPos.x);
 			System.out.println("Y" + (int) touchPos.y);
 		}
-		if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W))
+		if (canPlayerMove)
 		{
-			if (y < 65)
+			if (Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W))
 			{
-				jump();
+				if (y < 65)
+				{
+					jump();
+				}
 			}
-		}
-
-		if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A))
-		{
-			if (x > 16)
+			if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A))
 			{
-				x -= 800 * Gdx.graphics.getDeltaTime();
-				isPlayerMovingLeft = true;
+				if (x > 16)
+				{
+					x -= 800 * Gdx.graphics.getDeltaTime();
+					isPlayerMovingLeft = true;
+					isPlayerMovingRight = false;
+				}
+			} else if (Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D))
+			{
+				if (x < WIDTH - (256 + 16))
+				{
+					x += 800 * Gdx.graphics.getDeltaTime();
+					isPlayerMovingLeft = false;
+					isPlayerMovingRight = true;
+				}
+			} else
+			{
+				isPlayerMovingLeft = false;
 				isPlayerMovingRight = false;
 			}
-		} else if (Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D))
-		{
-			if (x < WIDTH - (256 + 16))
+			if (Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.DOWN))
 			{
-				x += 800 * Gdx.graphics.getDeltaTime();
-				isPlayerMovingLeft = false;
-				isPlayerMovingRight = true;
+				attack();
 			}
-		} else
-		{
-			isPlayerMovingLeft = false;
-			isPlayerMovingRight = false;
+			if (Gdx.input.isKeyJustPressed(Keys.SHIFT_LEFT) || Gdx.input.isKeyJustPressed(Keys.SHIFT_RIGHT))
+			{
+				shootFireBall();
+			}
+			if (Gdx.input.isKeyJustPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyJustPressed(Keys.CONTROL_RIGHT))
+			{
+				useShield();
+			}
 		}
-		if (Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.DOWN))
-		{
-			attack();
-		}
-		if (Gdx.input.isKeyJustPressed(Keys.SHIFT_LEFT) || Gdx.input.isKeyJustPressed(Keys.SHIFT_RIGHT))
-		{
-			shootFireBall();
-		}
-		if (Gdx.input.isKeyJustPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyJustPressed(Keys.CONTROL_RIGHT))
-		{
-			useShield();
-		}
-
 		if (Gdx.input.isKeyPressed(Keys.ESCAPE))
 		{
 			gameState = GameState.MENU;
@@ -888,7 +907,18 @@ public class PPMain extends ApplicationAdapter
 			batch.draw(changeCharButton, 4, 8);
 			batch.draw(backButton, 4, HEIGHT - (64 + 8));
 		}
+		arial.setColor(1, 1, 1, 1);
+		arial.draw(batch, "You: " + playerHeath, 256, (HEIGHT / 2) + 256);
+		arial.draw(batch, "Enemy: " + enemyHealth, WIDTH - 512, (HEIGHT / 2) + 256);
 
+		if (isRenderingFinishIt)
+		{
+			batch.draw(finishIt, (WIDTH / 2) - 256, HEIGHT / 2);
+		}
+		if (isRenderingItDied)
+		{
+			batch.draw(itDied, (WIDTH / 2) - 256, HEIGHT / 2);
+		}
 		batch.end();
 
 	}
@@ -898,6 +928,72 @@ public class PPMain extends ApplicationAdapter
 		player.x = x;
 		player.y = 64;
 		npc.x = ex;
+
+		if (enemyHealth < 1)
+		{
+			// render it dide
+			isRenderingItDied = true;
+			isRenderingFinishIt = false;
+			enemyHealth = 0;
+			Thread thread = new Thread(new Runnable()
+			{
+				public void run()
+				{
+					try
+					{
+						Thread.sleep(2000);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					resetGame();
+				}
+			});
+			thread.start();
+		} else if (enemyHealth <= 10)
+		{
+			// render finish it
+			isRenderingFinishIt = true;
+			isRenderingItDied = false;
+		} else
+		{
+			isRenderingFinishIt = false;
+			isRenderingItDied = false;
+		}
+		if (playerHeath < 1)
+		{
+			// render it dide
+			isRenderingItDied = true;
+			isRenderingFinishIt = false;
+			canPlayerMove = false;
+			playerHeath = 0;
+			Thread thread = new Thread(new Runnable()
+			{
+				public void run()
+				{
+					try
+					{
+						Thread.sleep(2000);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					resetGame();
+				}
+			});
+			thread.start();
+		} else if (playerHeath <= 10)
+		{
+			// render finish it
+			isRenderingFinishIt = true;
+			isRenderingItDied = false;
+			canPlayerMove = false;
+		} else
+		{
+			isRenderingFinishIt = false;
+			isRenderingItDied = false;
+			canPlayerMove = true;
+		}
 
 		if (Gdx.app.getType() == ApplicationType.Android)
 		{
@@ -909,9 +1005,12 @@ public class PPMain extends ApplicationAdapter
 					{
 						if (x > 16)
 						{
-							x -= 800 * Gdx.graphics.getDeltaTime();
-							isPlayerMovingLeft = true;
-							isPlayerMovingRight = false;
+							if (canPlayerMove)
+							{
+								x -= 800 * Gdx.graphics.getDeltaTime();
+								isPlayerMovingLeft = true;
+								isPlayerMovingRight = false;
+							}
 						}
 					}
 				}
@@ -921,9 +1020,12 @@ public class PPMain extends ApplicationAdapter
 					{
 						if (x < WIDTH - (256 + 16))
 						{
-							x += 800 * Gdx.graphics.getDeltaTime();
-							isPlayerMovingLeft = false;
-							isPlayerMovingRight = true;
+							if (canPlayerMove)
+							{
+								x += 800 * Gdx.graphics.getDeltaTime();
+								isPlayerMovingLeft = false;
+								isPlayerMovingRight = true;
+							}
 						}
 					}
 				}
@@ -975,9 +1077,12 @@ public class PPMain extends ApplicationAdapter
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
-						// attack button
-						isPressingButton = true;
-						attack();
+						if (canPlayerMove)
+						{
+							// attack button
+							isPressingButton = true;
+							attack();
+						}
 					}
 				}
 				if (mX > 1025 && mX < 1272)
@@ -989,7 +1094,10 @@ public class PPMain extends ApplicationAdapter
 
 						if (y < 70)
 						{
-							jump();
+							if (canPlayerMove)
+							{
+								jump();
+							}
 						}
 					}
 				}
@@ -999,8 +1107,11 @@ public class PPMain extends ApplicationAdapter
 					{
 						if (!renderFireBall)
 						{
-							// fireball button
-							shootFireBall();
+							if (canPlayerMove)
+							{
+								// fireball button
+								shootFireBall();
+							}
 						}
 					}
 				} else
@@ -1016,7 +1127,10 @@ public class PPMain extends ApplicationAdapter
 		}
 		if (Gdx.input.isButtonPressed(1))
 		{
-			attack();
+			if (canPlayerMove)
+			{
+				attack();
+			}
 		} else
 		{
 			clicking = false;
@@ -1115,6 +1229,10 @@ public class PPMain extends ApplicationAdapter
 					if (isSoundOn)
 					{
 						hitSound.play();
+						if (enemyHealth > 0)
+						{
+							enemyHealth -= 5;
+						}
 					}
 				}
 			});
@@ -1220,56 +1338,76 @@ public class PPMain extends ApplicationAdapter
 
 	private void dargonAI()
 	{
-		if (ex < x - 64)
+		if (enemyHealth > 10)
 		{
-			isMovingRight = true;
-			ex += 200 * Gdx.graphics.getDeltaTime();
-			enemyAttacking = false;
-		} else if (ex > x + 64)
-		{
-			isMovingLeft = true;
-			ex -= 200 * Gdx.graphics.getDeltaTime();
-			enemyAttacking = false;
-		} else
-		// touching
-		{
-			if (!isUsingShield)
+			if (enemyHealth > 1)
 			{
-				isMovingLeft = false;
-				isMovingRight = false;
-				int rand = (int) (Math.random() * 600);
-				// System.out.println(rand);
-				if (rand > 550)
+				if (ex < x - 64)
 				{
-					enemyAttacking = true;
-					if (isSoundOn)
-					{
-						// System.out.println("ENEMY HIT");
-						hitSound.play();
-					}
-					Thread thread = new Thread(new Runnable()
-					{
-
-						@Override
-						public void run()
-						{
-							try
-							{
-								Thread.sleep(150);
-							} catch (InterruptedException e)
-							{
-								e.printStackTrace();
-							}
-							enemyAttacking = false;
-						}
-					});
-					thread.start();
+					isMovingRight = true;
+					ex += 200 * Gdx.graphics.getDeltaTime();
+					enemyAttacking = false;
+				} else if (ex > x + 64)
+				{
+					isMovingLeft = true;
+					ex -= 200 * Gdx.graphics.getDeltaTime();
+					enemyAttacking = false;
 				} else
+				// touching
 				{
+					if (!isUsingShield)
+					{
 
+						isMovingLeft = false;
+						isMovingRight = false;
+						int rand = (int) (Math.random() * 600) + 1;
+						// System.out.println(rand);
+						if (rand > 570)
+						{
+							enemyAttacking = true;
+							if (isSoundOn)
+							{
+								// System.out.println("ENEMY HIT");
+								hitSound.play();
+								if (playerHeath > 0)
+								{
+									playerHeath -= 5;
+								}
+							}
+							Thread thread = new Thread(new Runnable()
+							{
+
+								@Override
+								public void run()
+								{
+									try
+									{
+										Thread.sleep(150);
+									} catch (InterruptedException e)
+									{
+										e.printStackTrace();
+									}
+									enemyAttacking = false;
+								}
+							});
+							thread.start();
+						} else
+						{
+
+						}
+
+					}
 				}
 			}
 		}
+	}
+
+	private void resetGame()
+	{
+		x = 64;
+		ex = WIDTH - 256 + 8;
+		enemyHealth = 100;
+		playerHeath = 100;
 	}
 
 	private void renderControls()
@@ -1345,8 +1483,6 @@ public class PPMain extends ApplicationAdapter
 		hitSound.dispose();
 		fireBallSound.dispose();
 		whooshSound.dispose();
-
-		batch.dispose();
 		menu.dispose();
 		controls.dispose();
 		maps.dispose();
@@ -1381,6 +1517,8 @@ public class PPMain extends ApplicationAdapter
 			background.dispose();
 		}
 		firstTimePlaying = false;
+		System.exit(0);
+
 	}
 
 }
