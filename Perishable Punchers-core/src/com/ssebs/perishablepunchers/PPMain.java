@@ -31,7 +31,7 @@ public class PPMain extends ApplicationAdapter
 	Preferences preferences;
 
 	SpriteBatch batch;
-	Texture background, menu, controls, maps, shieldButton, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
+	Texture begin, background, menu, controls, maps, shieldButton, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
 	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, shield, fireBallButton, mute, sound;
 	OrthographicCamera camera;
 	Rectangle player, npc;
@@ -45,32 +45,28 @@ public class PPMain extends ApplicationAdapter
 	private static final int FRAME_COLS = 2;
 	private static final int FRAME_ROWS = 2;
 
-	Animation walkAnimation, walkAnimation2, p1WalkAnimationR, p1WalkAnimationL, p2WalkAnimationR, p2WalkAnimationL, p3WalkAnimationR, p3WalkAnimationL, p4WalkAnimationR, p4WalkAnimationL;
-	Texture walkSheet, walkSheet2, p1WalkRSheet, p1WalkLSheet, p2WalkRSheet, p2WalkLSheet, p3WalkRSheet, p3WalkLSheet, p4WalkRSheet, p4WalkLSheet;
-	TextureRegion[] walkFrames, walkFrames2, p1WalkRFrames, p1WalkLFrames, p2WalkRFrames, p2WalkLFrames, p3WalkRFrames, p3WalkLFrames, p4WalkRFrames, p4WalkLFrames;
-	TextureRegion currentFrame, currentFrame2, p1WalkRFrame, p1WalkLFrame, p2WalkRFrame, p2WalkLFrame, p3WalkRFrame, p3WalkLFrame, p4WalkRFrame, p4WalkLFrame;
-	float stateTime, stateTime2, stateTimeP1L, stateTimeP1R, stateTimeP2L, stateTimeP2R, stateTimeP3L, stateTimeP3R, stateTimeP4L, stateTimeP4R;
+	Animation enemyWalkAnimation, enemyWalkAnimation2, p1WalkAnimationR, p1WalkAnimationL, p2WalkAnimationR, p2WalkAnimationL, p3WalkAnimationR, p3WalkAnimationL, p4WalkAnimationR, p4WalkAnimationL;
+	Texture enemyWalkSheet, enemyWalkSheet2, p1WalkRSheet, p1WalkLSheet, p2WalkRSheet, p2WalkLSheet, p3WalkRSheet, p3WalkLSheet, p4WalkRSheet, p4WalkLSheet;
+	TextureRegion[] enemyWalkFrames, enemyWalkFrames2, p1WalkRFrames, p1WalkLFrames, p2WalkRFrames, p2WalkLFrames, p3WalkRFrames, p3WalkLFrames, p4WalkRFrames, p4WalkLFrames;
+	TextureRegion enemyCurrentFrame, enemyCurrentFrame2, p1WalkRFrame, p1WalkLFrame, p2WalkRFrame, p2WalkLFrame, p3WalkRFrame, p3WalkLFrame, p4WalkRFrame, p4WalkLFrame;
 
-	boolean isMovingLeft = false;
-	boolean isMovingRight = false;
-	boolean kunch = false;
-	boolean clicking = false;
-	boolean overlapping = false;
-	boolean isPressingButton = false;
-	boolean isPressingButton2 = false;
-	boolean ableToJump = true;
+	float enemyStateTime, enemyStateTime2, stateTimeP1L, stateTimeP1R, stateTimeP2L, stateTimeP2R, stateTimeP3L, stateTimeP3R, stateTimeP4L, stateTimeP4R;
+
+	boolean isEnemyMovingLeft = false;
+	boolean isEnemyMovingRight = false;
+	boolean isPlayerMovingRight = false;
+	boolean isPlayerMovingLeft = false;
+	boolean kunching = false;
 	boolean firstTimePlaying = true;
 	boolean enemyAttacking = false;
 	boolean debugging = false;
 	boolean renderFireBall = false;
-	boolean isPlayerMovingRight = false;
-	boolean isPlayerMovingLeft = false;
 	boolean isUsingShield = false;
 	boolean isRenderingFinishIt = false;
 	boolean isRenderingItDied = false;
+	boolean isRenderingBegin = true;
 	boolean canPlayerMove = true;
 
-	// boolean isSoundOn = true;// THIS SHOULD BE A SETTING
 	boolean isSoundOn;
 
 	GestureDetector gestureDetector;
@@ -98,43 +94,43 @@ public class PPMain extends ApplicationAdapter
 	@Override
 	public void create()
 	{
-		arial = new BitmapFont(Gdx.files.internal("data/Arial.fnt"), Gdx.files.internal("data/Arial_0.png"), false);
-
+		arial = new BitmapFont(Gdx.files.internal("data/BloodFont.fnt"));
+		arial.setColor((float) 88 / 255, 0, 0, 1);
 		jumpSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Jump.wav"));
 		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Punch.wav"));
 		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Haduken.wav"));
 		whooshSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Whoosh.wav"));
 		// ^sounds
 		{
-			walkSheet = new Texture(Gdx.files.internal("data/Dargon/AnimR.png"));
-			TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth() / FRAME_COLS, walkSheet.getHeight() / FRAME_ROWS);
-			walkFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			enemyWalkSheet = new Texture(Gdx.files.internal("data/Dargon/AnimR.png"));
+			TextureRegion[][] tmp = TextureRegion.split(enemyWalkSheet, enemyWalkSheet.getWidth() / FRAME_COLS, enemyWalkSheet.getHeight() / FRAME_ROWS);
+			enemyWalkFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
 			int index = 0;
 			for (int i = 0; i < FRAME_ROWS; i++)
 			{
 				for (int j = 0; j < FRAME_COLS; j++)
 				{
-					walkFrames[index++] = tmp[i][j];
+					enemyWalkFrames[index++] = tmp[i][j];
 				}
 			}
-			walkAnimation = new Animation(0.25f, walkFrames);
-			stateTime = 0f;
+			enemyWalkAnimation = new Animation(0.25f, enemyWalkFrames);
+			enemyStateTime = 0f;
 			// dragon right
 		}
 		{
-			walkSheet2 = new Texture(Gdx.files.internal("data/Dargon/AnimL.png"));
-			TextureRegion[][] tmp2 = TextureRegion.split(walkSheet2, walkSheet2.getWidth() / FRAME_COLS, walkSheet2.getHeight() / FRAME_ROWS);
-			walkFrames2 = new TextureRegion[FRAME_COLS * FRAME_ROWS];
+			enemyWalkSheet2 = new Texture(Gdx.files.internal("data/Dargon/AnimL.png"));
+			TextureRegion[][] tmp2 = TextureRegion.split(enemyWalkSheet2, enemyWalkSheet2.getWidth() / FRAME_COLS, enemyWalkSheet2.getHeight() / FRAME_ROWS);
+			enemyWalkFrames2 = new TextureRegion[FRAME_COLS * FRAME_ROWS];
 			int index2 = 0;
 			for (int i = 0; i < FRAME_ROWS; i++)
 			{
 				for (int j = 0; j < FRAME_COLS; j++)
 				{
-					walkFrames2[index2++] = tmp2[i][j];
+					enemyWalkFrames2[index2++] = tmp2[i][j];
 				}
 			}
-			walkAnimation2 = new Animation(0.25f, walkFrames2);
-			stateTime2 = 0f;
+			enemyWalkAnimation2 = new Animation(0.25f, enemyWalkFrames2);
+			enemyStateTime2 = 0f;
 			// dragon left
 
 		}
@@ -312,6 +308,7 @@ public class PPMain extends ApplicationAdapter
 		shield = new Texture(Gdx.files.internal("data/Shield.png"));
 		finishIt = new Texture(Gdx.files.internal("data/FinishIt.png"));
 		itDied = new Texture(Gdx.files.internal("data/ItDied.png"));
+		begin = new Texture(Gdx.files.internal("data/Begin.png"));
 
 		player = new Rectangle(x, y, 256, 256);
 		npc = new Rectangle(ex, wy, 256, 256);
@@ -720,8 +717,8 @@ public class PPMain extends ApplicationAdapter
 
 	private void renderGame()
 	{
-		stateTime += Gdx.graphics.getDeltaTime();
-		stateTime2 += Gdx.graphics.getDeltaTime();
+		enemyStateTime += Gdx.graphics.getDeltaTime();
+		enemyStateTime2 += Gdx.graphics.getDeltaTime();
 		stateTimeP1L += Gdx.graphics.getDeltaTime();
 		stateTimeP1R += Gdx.graphics.getDeltaTime();
 		stateTimeP2L += Gdx.graphics.getDeltaTime();
@@ -731,8 +728,8 @@ public class PPMain extends ApplicationAdapter
 		stateTimeP4L += Gdx.graphics.getDeltaTime();
 		stateTimeP4R += Gdx.graphics.getDeltaTime();
 		// ^ Statetimes
-		currentFrame = walkAnimation.getKeyFrame(stateTime, true);
-		currentFrame2 = walkAnimation2.getKeyFrame(stateTime2, true);
+		enemyCurrentFrame = enemyWalkAnimation.getKeyFrame(enemyStateTime, true);
+		enemyCurrentFrame2 = enemyWalkAnimation2.getKeyFrame(enemyStateTime2, true);
 		p1WalkLFrame = p1WalkAnimationL.getKeyFrame(stateTimeP1L, true);
 		p1WalkRFrame = p1WalkAnimationR.getKeyFrame(stateTimeP1R, true);
 		p2WalkLFrame = p2WalkAnimationL.getKeyFrame(stateTimeP2L, true);
@@ -762,7 +759,7 @@ public class PPMain extends ApplicationAdapter
 					jump();
 				}
 			}
-			if (Gdx.input.isKeyPressed(Keys.LEFT) || Gdx.input.isKeyPressed(Keys.A))
+			if (Gdx.input.isKeyPressed(Keys.LEFT))
 			{
 				if (x > 16)
 				{
@@ -770,7 +767,23 @@ public class PPMain extends ApplicationAdapter
 					isPlayerMovingLeft = true;
 					isPlayerMovingRight = false;
 				}
-			} else if (Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D))
+			} else if (Gdx.input.isKeyPressed(Keys.RIGHT))
+			{
+				if (x < WIDTH - (256 + 16))
+				{
+					x += 800 * Gdx.graphics.getDeltaTime();
+					isPlayerMovingLeft = false;
+					isPlayerMovingRight = true;
+				}
+			} else if (Gdx.input.isKeyPressed(Keys.A))
+			{
+				if (x > 16)
+				{
+					x -= 800 * Gdx.graphics.getDeltaTime();
+					isPlayerMovingLeft = true;
+					isPlayerMovingRight = false;
+				}
+			} else if (Gdx.input.isKeyPressed(Keys.D))
 			{
 				if (x < WIDTH - (256 + 16))
 				{
@@ -783,6 +796,7 @@ public class PPMain extends ApplicationAdapter
 				isPlayerMovingLeft = false;
 				isPlayerMovingRight = false;
 			}
+
 			if (Gdx.input.isKeyJustPressed(Keys.S) || Gdx.input.isKeyJustPressed(Keys.DOWN))
 			{
 				attack();
@@ -810,7 +824,23 @@ public class PPMain extends ApplicationAdapter
 
 		batch.begin();
 		batch.draw(background, 0, 0);
-		if (!kunch)
+		if (isEnemyMovingRight)
+		{
+			batch.draw(enemyCurrentFrame, ex, wy);
+		} else if (isEnemyMovingLeft)
+		{
+			batch.draw(enemyCurrentFrame2, ex, wy);
+		} else
+		{
+			if (enemyAttacking)
+			{
+				batch.draw(enemyAttack, ex, wy);
+			} else
+			{
+				batch.draw(enemy, ex, wy);
+			}
+		}
+		if (!kunching)
 		{
 			// batch.draw(fighter, x, y);
 			if (isPlayerMovingRight)
@@ -851,38 +881,7 @@ public class PPMain extends ApplicationAdapter
 		} else
 		{
 			batch.draw(fighterKunch, x, y);
-			if (overlapping)
-			{
-				if (isSoundOn)
-				{
-					hitSound.play();
-				}
-			}
-
 		}
-
-		if (isMovingRight)
-		{
-			batch.draw(currentFrame, ex, wy);
-		} else if (isMovingLeft)
-		{
-			batch.draw(currentFrame2, ex, wy);
-		} else
-		{
-			if (enemyAttacking)
-			{
-				batch.draw(enemyAttack, ex, wy);
-			} else
-			{
-				batch.draw(enemy, ex, wy);
-			}
-		}
-
-		if (overlapping)
-		{
-			// batch.draw(explosion, x - 128, y - 128);
-		}
-		// batch.draw(backButton, 4, HEIGHT - (64 + 4));
 
 		if (renderFireBall)
 		{
@@ -897,18 +896,17 @@ public class PPMain extends ApplicationAdapter
 		if (Gdx.app.getType() == ApplicationType.Android)
 		{
 			batch.draw(leftButton, 4, 4);
-			batch.draw(attackButton, 8 + 128, 4);
-			batch.draw(rightButton, 12 + 256, 4);
-			batch.draw(jumpButton, 8 + 128, 128 + 8);
-			batch.draw(fireBallButton, WIDTH - (128 + 4), 4);
-			batch.draw(shieldButton, WIDTH - 256 - 8, 4);
+			batch.draw(jumpButton, 12 + 256, 4);
+			batch.draw(rightButton, 8 + 128, 4);
+			batch.draw(attackButton, WIDTH - 128 - 4, 4);
+			batch.draw(fireBallButton, WIDTH - 256 - 8, 4);
+			batch.draw(shieldButton, WIDTH - 256 - 128 - 12, 4);
 			batch.draw(changeCharButton, (WIDTH / 2) - 128, 4);
 		} else
 		{
 			batch.draw(changeCharButton, 4, 8);
 			batch.draw(backButton, 4, HEIGHT - (64 + 8));
 		}
-		arial.setColor(1, 1, 1, 1);
 		arial.draw(batch, "You: " + playerHeath, 256, (HEIGHT / 2) + 256);
 		arial.draw(batch, "Enemy: " + enemyHealth, WIDTH - 512, (HEIGHT / 2) + 256);
 
@@ -919,6 +917,27 @@ public class PPMain extends ApplicationAdapter
 		if (isRenderingItDied)
 		{
 			batch.draw(itDied, (WIDTH / 2) - 256, HEIGHT / 2);
+		}
+		if (isRenderingBegin && playerHeath == 100 && enemyHealth == 100)
+		{
+			batch.draw(begin, (WIDTH / 2) - 256, HEIGHT / 2);
+			Thread thread = new Thread(new Runnable()
+			{
+
+				@Override
+				public void run()
+				{
+					try
+					{
+						Thread.sleep(2000);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					isRenderingBegin = false;
+				}
+			});
+			thread.start();
 		}
 		batch.end();
 
@@ -942,11 +961,12 @@ public class PPMain extends ApplicationAdapter
 				{
 					try
 					{
-						Thread.sleep(2000);
+						Thread.sleep(500);
 					} catch (InterruptedException e)
 					{
 						e.printStackTrace();
 					}
+					isRenderingBegin = true;
 					resetGame();
 				}
 			});
@@ -1010,7 +1030,7 @@ public class PPMain extends ApplicationAdapter
 						}
 					}
 				}
-				if (mX > 12 + 256 && mX < 12 + 256 + 128)
+				if (mX > 8 + 128 && mX < 8 + 128 + 128)
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
@@ -1070,7 +1090,7 @@ public class PPMain extends ApplicationAdapter
 					gameState = GameState.CHARACTER_SELECTION;
 
 				}
-				if (mX > WIDTH - 256 - 8 && mX < WIDTH - 256 - 8 + 128)
+				if (mX > WIDTH - 256 - 128 - 12 && mX < WIDTH - 256 - 128 - 12 + 128)
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
@@ -1080,24 +1100,22 @@ public class PPMain extends ApplicationAdapter
 						}
 					}
 				}
-				if (mX > 8 + 128 && mX < 8 + 128 + 128)
+				if (mX > WIDTH - 128 - 4 && mX < WIDTH - 128 - 4 + 128)
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
 						if (canPlayerMove)
 						{
 							// attack button
+							Gdx.input.vibrate(50);
 							attack();
 						}
 					}
 				}
-				if (mX > 8 + 128 && mX < 8 + 128 + 128)
+				if (mX > 12 + 256 && mX < 12 + 256 + 128)
 				{
-					if (mY > 8 + 128 && mY < 8 + 128 + 128)
+					if (mY > 4 && mY < 4 + 128)
 					{
-						// jump button
-						isPressingButton2 = true;
-
 						if (y < 70)
 						{
 							if (canPlayerMove)
@@ -1108,7 +1126,7 @@ public class PPMain extends ApplicationAdapter
 					}
 				}
 
-				if (mX > WIDTH - (128 + 4))
+				if (mX > WIDTH - 256 - 8 && mX < (WIDTH - 256 - 8) + 128)
 				{
 					if (mY > 4 && mY < 4 + 128)
 					{
@@ -1117,30 +1135,14 @@ public class PPMain extends ApplicationAdapter
 							if (canPlayerMove)
 							{
 								// fireball button
+								Gdx.input.vibrate(50);
 								shootFireBall();
 							}
 						}
 					}
-				} else
-				{
-					isPressingButton2 = false;
-					isPressingButton = false;
 				}
 			}
 
-		} else
-		{
-			clicking = false;
-		}
-		if (Gdx.input.isButtonPressed(1))
-		{
-			if (canPlayerMove)
-			{
-				attack();
-			}
-		} else
-		{
-			clicking = false;
 		}
 
 		dargonAI();
@@ -1224,7 +1226,7 @@ public class PPMain extends ApplicationAdapter
 	private void attack()
 	{
 
-		kunch = true;
+		kunching = true;
 		if (npc.overlaps(player))
 		{
 			thread3 = new Thread(new Runnable()
@@ -1274,7 +1276,7 @@ public class PPMain extends ApplicationAdapter
 				{
 					e.printStackTrace();
 				}
-				kunch = false;
+				kunching = false;
 			}
 		});
 		thread.start();
@@ -1316,6 +1318,7 @@ public class PPMain extends ApplicationAdapter
 				} else
 				// touching
 				{
+
 				}
 				do
 				{
@@ -1342,6 +1345,7 @@ public class PPMain extends ApplicationAdapter
 			}
 		});
 		thread.start();
+
 	}
 
 	private void dargonAI()
@@ -1352,12 +1356,12 @@ public class PPMain extends ApplicationAdapter
 			{
 				if (ex < x - 64)
 				{
-					isMovingRight = true;
+					isEnemyMovingRight = true;
 					ex += 200 * Gdx.graphics.getDeltaTime();
 					enemyAttacking = false;
 				} else if (ex > x + 64)
 				{
-					isMovingLeft = true;
+					isEnemyMovingLeft = true;
 					ex -= 200 * Gdx.graphics.getDeltaTime();
 					enemyAttacking = false;
 				} else
@@ -1366,8 +1370,8 @@ public class PPMain extends ApplicationAdapter
 					if (!isUsingShield)
 					{
 
-						isMovingLeft = false;
-						isMovingRight = false;
+						isEnemyMovingLeft = false;
+						isEnemyMovingRight = false;
 						int rand = (int) (Math.random() * 600) + 1;
 						// System.out.println(rand);
 						if (rand > 570)
@@ -1418,6 +1422,7 @@ public class PPMain extends ApplicationAdapter
 		ex = WIDTH - 256 + 8;
 		enemyHealth = 100;
 		playerHeath = 100;
+		isRenderingBegin = true;
 	}
 
 	private void renderControls()
@@ -1510,8 +1515,8 @@ public class PPMain extends ApplicationAdapter
 		fireBallButton.dispose();
 		mute.dispose();
 		sound.dispose();
-		walkSheet.dispose();
-		walkSheet2.dispose();
+		enemyWalkSheet.dispose();
+		enemyWalkSheet2.dispose();
 		p1WalkRSheet.dispose();
 		p1WalkLSheet.dispose();
 		p2WalkRSheet.dispose();
