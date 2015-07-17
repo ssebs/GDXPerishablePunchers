@@ -334,7 +334,7 @@ public class PPMain extends ApplicationAdapter
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		camera.update();
 		batch.setProjectionMatrix(camera.combined);
-		Gdx.graphics.setTitle("Perishable Punchers|FPS:" + Gdx.graphics.getFramesPerSecond());
+		Gdx.graphics.setTitle("Perishable Punchers");
 		switch (gameState)
 		{
 		case MENU:
