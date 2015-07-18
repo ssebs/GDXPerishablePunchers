@@ -31,7 +31,7 @@ public class PPMain extends ApplicationAdapter
 	Preferences preferences;
 
 	SpriteBatch batch;
-	Texture begin, background, menu, controls, maps, shieldButton, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
+	Texture begin, background, menu, controls, maps, mapButton, shieldButton, backButton, attackButton, jumpButton, leftButton, rightButton, changeCharButton, charSelect;
 	Texture enemyAttack, fighter, enemy, fighterKunch, explosion, shield, fireBallButton, mute, sound;
 	OrthographicCamera camera;
 	Rectangle player, npc;
@@ -294,6 +294,7 @@ public class PPMain extends ApplicationAdapter
 		charSelect = new Texture(Gdx.files.internal("data/Screens/CharacterSelection.png"));
 		maps = new Texture(Gdx.files.internal("data/Screens/Maps.png"));
 
+		mapButton = new Texture(Gdx.files.internal("data/Buttons/ChangeMap.png"));
 		backButton = new Texture(Gdx.files.internal("data/Buttons/Back.png"));
 		attackButton = new Texture(Gdx.files.internal("data/Buttons/Attack.png"));
 		jumpButton = new Texture(Gdx.files.internal("data/Buttons/Jump.png"));
@@ -905,9 +906,11 @@ public class PPMain extends ApplicationAdapter
 			batch.draw(fireBallButton, WIDTH - 256 - 8, 4);
 			batch.draw(shieldButton, WIDTH - 256 - 128 - 12, 4);
 			batch.draw(changeCharButton, (WIDTH / 2) - 128, 4);
+			batch.draw(mapButton, (WIDTH / 2) - 128, 8 + 64);
 		} else
 		{
-			batch.draw(changeCharButton, 4, 8);
+			batch.draw(changeCharButton, 4, 4);
+			batch.draw(mapButton, 4, 8 + 64);
 			batch.draw(backButton, 4, HEIGHT - (64 + 8));
 		}
 		arial.draw(batch, "You: " + playerHeath, 256, (HEIGHT / 2) + 256);
@@ -1054,6 +1057,18 @@ public class PPMain extends ApplicationAdapter
 		{
 			if (Gdx.app.getType() == ApplicationType.Desktop)
 			{
+				if (mX > 4 && mX < 4 + 256 && mY > (8 + 64) && mY < (8 + 64) + 64)
+				{
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.MAP_SELECTION;
+				}
+
 				if (mX > 4 && mX < 4 + 256 && mY > (8) && mY < (8) + 64)
 				{
 					try
@@ -1080,7 +1095,17 @@ public class PPMain extends ApplicationAdapter
 			}
 			if (Gdx.app.getType() == ApplicationType.Android)
 			{
-				// (WIDTH / 2) - 128, 4
+				if (mX > 4 && mX < 4 + 256 && mY > (8 + 64) && mY < (8) + 64 + 64)
+				{
+					try
+					{
+						Thread.sleep(250);
+					} catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					gameState = GameState.MAP_SELECTION;
+				}
 				if (mX > (WIDTH / 2) - 128 && mX < (WIDTH / 2) - 128 + 256 && mY > 4 && mY < 4 + 64)
 				{
 					try
