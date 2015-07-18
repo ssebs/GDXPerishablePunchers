@@ -41,6 +41,8 @@ public class PPMain extends ApplicationAdapter
 	int mapID;
 	int fbX, fbY;// fireball coords
 	int hitCounter = 0;
+	int shieldCount = 0;
+	int fireBallCount = 0;
 
 	private static final int FRAME_COLS = 2;
 	private static final int FRAME_ROWS = 2;
@@ -72,7 +74,7 @@ public class PPMain extends ApplicationAdapter
 	GestureDetector gestureDetector;
 	MyGestureListener myGestureListener;
 
-	Sound jumpSound, hitSound, fireBallSound, whooshSound;
+	Sound jumpSound, hitSound, fireBallSound, whooshSound, teaBagSound;
 
 	BitmapFont arial;
 
@@ -100,6 +102,7 @@ public class PPMain extends ApplicationAdapter
 		hitSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Punch.wav"));
 		fireBallSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Haduken.wav"));
 		whooshSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/Whoosh.wav"));
+		teaBagSound = Gdx.audio.newSound(Gdx.files.internal("data/Sounds/TeaBag.wav"));
 		// ^sounds
 		{
 			enemyWalkSheet = new Texture(Gdx.files.internal("data/Dargon/AnimR.png"));
@@ -1158,6 +1161,7 @@ public class PPMain extends ApplicationAdapter
 			public void run()
 			{
 				isUsingShield = true;
+				shieldCount++;
 				try
 				{
 					Thread.sleep(2500);
@@ -1168,7 +1172,10 @@ public class PPMain extends ApplicationAdapter
 				isUsingShield = false;
 			}
 		});
-		thread.start();
+		if (shieldCount < 2)
+		{
+			thread.start();
+		}
 	}
 
 	Thread thread4;
@@ -1235,13 +1242,20 @@ public class PPMain extends ApplicationAdapter
 				@Override
 				public void run()
 				{
-					if (isSoundOn)
+					if (isSoundOn && y > 64)
+					{
+						teaBagSound.play();
+						if (enemyHealth > 0)
+						{
+							enemyHealth -= 10;
+						}
+					} else if (isSoundOn)
 					{
 						hitSound.play();
-					}
-					if (enemyHealth > 0)
-					{
-						enemyHealth -= 5;
+						if (enemyHealth > 0)
+						{
+							enemyHealth -= 5;
+						}
 					}
 
 				}
@@ -1316,7 +1330,6 @@ public class PPMain extends ApplicationAdapter
 				{
 					thread2.start();
 				} else
-				// touching
 				{
 
 				}
@@ -1333,6 +1346,7 @@ public class PPMain extends ApplicationAdapter
 					{
 						renderFireBall = false;
 						fbX = x;
+						enemyHealth -= 20;
 					}
 					try
 					{
@@ -1344,7 +1358,18 @@ public class PPMain extends ApplicationAdapter
 				} while (renderFireBall);
 			}
 		});
-		thread.start();
+		if (fireBallCount < 2)
+		{
+			if (fbX < ex - 64)
+			{
+				fireBallCount++;
+				thread.start();
+			} else if (fbX > ex + 64)
+			{
+				fireBallCount++;
+				thread.start();
+			}
+		}
 
 	}
 
@@ -1423,6 +1448,8 @@ public class PPMain extends ApplicationAdapter
 		enemyHealth = 100;
 		playerHeath = 100;
 		isRenderingBegin = true;
+		shieldCount = 0;
+		fireBallCount = 0;
 	}
 
 	private void renderControls()
