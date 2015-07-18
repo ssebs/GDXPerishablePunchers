@@ -1095,7 +1095,7 @@ public class PPMain extends ApplicationAdapter
 			}
 			if (Gdx.app.getType() == ApplicationType.Android)
 			{
-				if (mX > 4 && mX < 4 + 256 && mY > (8 + 64) && mY < (8) + 64 + 64)
+				if (mX > (WIDTH / 2) - 128 && mX < (WIDTH / 2) - 128 + 256 && mY > 8 + 64 && mY < 8 + 64 + 64)
 				{
 					try
 					{
